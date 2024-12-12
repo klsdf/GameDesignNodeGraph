@@ -32,6 +32,32 @@ class GraphManager {
     static init() {
         this.createContainer();
         this.initListener();
+
+        // 添加拖拽创建节点的处理
+        GraphManager.container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        GraphManager.container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const nodeTypeData = JSON.parse(e.dataTransfer.getData('nodeType'));
+            
+            // 计算放置位置（考虑缩放和滚动）
+            const rect = GraphManager.container.getBoundingClientRect();
+            const scale = GraphManager.zoom;
+            const x = (e.clientX - rect.left) / scale;
+            const y = (e.clientY - rect.top) / scale;
+
+            // 创建新节点
+            const nodeType = new NodeType(
+                nodeTypeData.parentType,
+                nodeTypeData.type,
+                nodeTypeData.input,
+                nodeTypeData.output
+            );
+            const node = new Node(x, y, nodeType);
+            NodeManager.registerNode(node);
+        });
     }
 
     static createContainer() {
@@ -137,7 +163,7 @@ class GraphManager {
 
         // 限制缩放范围
         this.zoom = Math.max(this.zoom_min, Math.min(this.zoom_max, zoomvalue));
-        console.log("zoom", this.zoom);
+        // console.log("zoom", this.zoom);
 
         // 更新画布transform
         // this.updateTransform();

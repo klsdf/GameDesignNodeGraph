@@ -14,7 +14,14 @@
         <button class="reset-button" onclick="GraphManager.resetView()">重置视图</button>
         <button class="save-button" onclick="GraphManager.saveNodes()">保存</button>
         <button class="load-button" onclick="document.getElementById('fileInput').click()">读取</button>
-        <input type="file" id="fileInput" style="display: none" accept=".json" onchange="GraphManager.loadNodes(this.files[0])">
+        <input type="file" id="fileInput" style="display: none" accept=".json"
+            onchange="GraphManager.loadNodes(this.files[0])">
+    </div>
+    <div id="node-list">
+        <h3>节点列表</h3>
+        <div id="node-list-container">
+            <!-- 节点列表项会动态生成在这里 -->
+        </div>
     </div>
     <script src="./js/node.js"></script>
 
@@ -22,16 +29,17 @@
     <script src="./js/component.js"></script>
 
     <script>
- 
-      
+
+
         GraphManager.init();
         var node1 = new Node(100, 100, new NodeType('基础节点', '输入节点', 2, 3));
         var node2 = new Node(500, 200, new NodeType('基础节点', '输出节点', 3, 3));
-         node1.connectTo(2,node2,0);
-         node1.connectTo(2,node2,2);
-         node1.connectTo(1,node2,1);
-         node1.connectTo(2,node2,1);
+        node1.connectTo(2, node2, 0);
+        node1.connectTo(2, node2, 2);
+        node1.connectTo(1, node2, 1);
+        node1.connectTo(2, node2, 1);
         NodeManager.registerNode(node1);
+       
 
         // 点击空白处关闭菜单
         document.addEventListener('click', function (e) {
@@ -41,12 +49,11 @@
             }
         });
 
-
     </script>
 
- 
-    
-    
+
+
+
 </body>
 
 </html>

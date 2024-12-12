@@ -27,7 +27,7 @@ body
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: rgb(255, 0, 0);
+    color: rgb(255, 255, 255);
     border-radius: 20px;
     font-size: 10px;
     backdrop-filter: blur(10px);
@@ -153,4 +153,38 @@ svg {
     fill: none;
     stroke-linecap: round;
     stroke-dasharray: 5, 5;
+}
+
+#node-list {
+    position: fixed;
+    left: 0;
+    top: 100px;
+    width: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0 10px 10px 0;
+    padding: 15px;
+    color: white;
+    z-index: 1000;
+}
+
+#node-list h3 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.node-list-item {
+    padding: 10px;
+    margin: 5px 0;
+    background: rgba(128, 128, 128, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    cursor: move;
+    transition: all 0.3s ease;
+}
+
+.node-list-item:hover {
+    background: rgba(128, 128, 128, 0.5);
+    transform: translateX(5px);
 }

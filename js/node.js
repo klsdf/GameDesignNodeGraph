@@ -30,6 +30,45 @@ class NodeManager {
             throw new Error(`节点类型 '${node.nodeType.type}' 已存在于 '${node.nodeType.parentType}' 分类中`);
         }
         NodeManager.nodes[node.nodeType.parentType].push({ type: node.nodeType.type, input: node.nodeType.input, output: node.nodeType.output });
+        NodeManager.updateNodeList();
+    }
+
+    /**
+     * 更新首页的节点列表
+     */
+    static updateNodeList() {
+        const container = document.getElementById('node-list-container');
+        container.innerHTML = ''; // 清空现有列表
+
+        // 遍历所有注册的节点类型
+        Object.entries(NodeManager.nodes).forEach(([parentType, nodeTypes]) => {
+            // 创建父类型标题
+            const parentTitle = document.createElement('div');
+            parentTitle.className = 'node-list-category';
+            parentTitle.textContent = parentType;
+            container.appendChild(parentTitle);
+
+            // 创建该类型下的所有节点
+            nodeTypes.forEach(nodeType => {
+                const item = document.createElement('div');
+                item.className = 'node-list-item';
+                item.textContent = nodeType.type;
+                item.draggable = true;
+
+                // 添加拖拽事件
+                item.addEventListener('dragstart', (e) => {
+                    console.log("dragstart", e);
+                    e.dataTransfer.setData('nodeType', JSON.stringify({
+                        parentType: parentType,
+                        type: nodeType.type,
+                        input: nodeType.input,
+                        output: nodeType.output
+                    }));
+                });
+
+                container.appendChild(item);
+            });
+        });
     }
 
 }
@@ -228,9 +267,11 @@ class Node {
             return;
         }
         if (e.button !== 0) return; // 只响应左键
-
-        // e.preventDefault(); // 阻止默认行为
-        // e.stopPropagation(); // 阻止事件冒泡
+        
+        // 检查点击的是否为节点本身，而不是子元素
+        if (e.target !== this.documentElement) {
+            return;
+        }
 
         // 获取当前缩放比例
         const scale = GraphManager.zoom;
