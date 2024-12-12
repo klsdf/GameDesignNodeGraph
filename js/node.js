@@ -212,8 +212,10 @@ class Node {
         // 添加运行按钮
         this.addRunButton();
 
-        // 保存节点实例的引用
+        //  保存节点
         this.documentElement.node = this;
+
+        this.group = null;
     }
 
     // 添加运行按钮
@@ -390,7 +392,7 @@ class Node {
             return;
         }
         if (e.button !== 0) return; // 只响应左键
-        
+
         // 检查点击的是否为节点本身，而不是子元素
         if (e.target !== this.documentElement) {
             return;
@@ -412,18 +414,37 @@ class Node {
 
             // 更新所有连接
             this.updateAllConnections();
-
-            // 更新容器大小
-            // this.updateContainerSize();
         };
 
-        const stopMoveNode = () => {
+        const stopMoveNode = (e) => {
+            // 如果节点当前不在组内，检查是否拖入了组
+            if (!this.group) {
+                const groups = document.querySelectorAll('.group');
+                for (const groupElement of groups) {
+                    const group = groupElement.group;
+                    if (group && group.containsPoint(e.clientX, e.clientY)) {
+                        // 如果拖入了新组，从旧组中移除（如果有的话）
+                        if (this.group) {
+                            this.group.removeNode(this);
+                        }
+                        group.addNode(this);
+                        console.log("Node added to group");
+                        break;
+                    }
+                }
+            }
+            // 如果节点拖出了当前组的范围，从组中移除
+            else if (!this.group.containsPoint(e.clientX, e.clientY)) {
+                this.group.removeNode(this);
+                console.log("Node removed from group");
+            }
+
             document.removeEventListener('mousemove', moveNode);
             document.removeEventListener('mouseup', stopMoveNode);
         };
 
         document.addEventListener('mousemove', moveNode);
-        document.addEventListener('mouseup', stopMoveNode, { once: true });
+        document.addEventListener('mouseup', stopMoveNode);
     }
     moveNode(e) {
         if (!this.ismoving) return;

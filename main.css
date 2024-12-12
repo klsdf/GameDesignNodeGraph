@@ -253,3 +253,38 @@ svg {
     cursor: pointer;
     border-radius: 5px;
 }
+
+
+
+.group {
+    position: absolute;
+    border: 2px dashed #666;
+    background-color: rgba(200, 200, 200, 0.1);
+    cursor: move;
+    z-index: 0;
+}
+
+.group:hover {
+    border-color: #999;
+    background-color: rgba(200, 200, 200, 0.2);
+}
+
+.group-resize-handle {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    width: 10px;
+    height: 10px;
+    background-color: #666;
+    cursor: se-resize;
+    border-radius: 50%;
+}
+
+.group-resize-handle:hover {
+    background-color: #999;
+}
+
+/* 确保节点在组的上层 */
+.node {
+    z-index: 1;
+}

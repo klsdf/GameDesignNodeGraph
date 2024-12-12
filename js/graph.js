@@ -204,6 +204,15 @@ class GraphManager {
             submenuNodeTypes: NodeManager.nodes
         },
         {
+            text: '添加组',
+            action: () => {
+                new Group(
+                    (GraphManager.lastContextMenuX - GraphManager.canvas_x) / GraphManager.zoom,
+                    (GraphManager.lastContextMenuY - GraphManager.canvas_y) / GraphManager.zoom
+                );
+            }
+        },
+        {
             text: '清除所有节点',
             action: Node.clearAllNodes
         },
