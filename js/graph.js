@@ -221,7 +221,18 @@ class GraphManager {
     static nodeMenuItems = [
         { text: '开始连接', action: (clickedNode) => clickedNode.connectTo(clickedNode) },
         { text: '删除节点', action: (clickedNode) => this.deleteNode(clickedNode) },
-        { text: '删除连接', action: (clickedNode) => this.deleteConnections(clickedNode) }
+        { text: '删除连接', action: (clickedNode) => this.deleteConnections(clickedNode) },
+        { text: '设为起始节点', action: (clickedNode) => {
+            // 移除其他节点的起始节点状态
+            document.querySelectorAll('.node').forEach(node => {
+                if (node.node) {
+                    node.node.isStartNode = false;
+                    node.classList.remove('start-node');
+                }
+            });
+            // 设置新的起始节点
+            clickedNode.setAsStartNode();
+        }}
     ];
 
     // 添加缺失的方法
@@ -418,6 +429,15 @@ class GraphManager {
             }
         };
         reader.readAsText(file);
+    }
+
+    // 添加重置所有节点的方法
+    static resetAllNodes() {
+        document.querySelectorAll('.node').forEach(nodeElement => {
+            if (nodeElement.node) {
+                nodeElement.node.reset();
+            }
+        });
     }
 
 }

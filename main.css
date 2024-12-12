@@ -188,3 +188,68 @@ svg {
     background: rgba(128, 128, 128, 0.5);
     transform: translateX(5px);
 }
+
+.node-run-button {
+    position: absolute;
+    top: 5px;
+    right: 30px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.node-run-button:hover {
+    background-color: #45a049;
+}
+
+.start-node {
+    border: 2px solid #ff9800;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
+.node.processing {
+    background-color: rgba(255, 235, 59, 0.3);
+}
+
+.node.processed {
+    background-color: rgba(76, 175, 80, 0.3);
+}
+
+
+
+
+/* 策划案的部分 */
+#proposal {
+    position: relative;
+    /* padding: 10px;
+    border: 2px solid #ccc; */
+    width: 500px;  
+    height: 100vh; 
+    overflow: auto; 
+    z-index: 1000;
+    position: fixed;
+    right: 0;
+    top: 0;
+    background-color: rgba(240, 248, 255, 0.582);
+    backdrop-filter: blur(20px);
+} 
+#proposalContent { 
+     white-space: pre-wrap; 
+}
+
+#closeProposal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background-color: #f44336; /* 红色背景 */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}

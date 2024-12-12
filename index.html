@@ -17,6 +17,10 @@
         <input type="file" id="fileInput" style="display: none" accept=".json"
             onchange="GraphManager.loadNodes(this.files[0])">
     </div>
+    <div id="proposal">
+        <button id="closeProposal">关闭</button>
+        <div id="proposalContent"></div>
+    </div>
     <div id="node-list">
         <h3>节点列表</h3>
         <div id="node-list-container">
@@ -32,9 +36,36 @@
 
 
         GraphManager.init();
-        var node1 = new Node(100, 100, new NodeType('基础节点', '输入节点', 2, 3));
-        var node2 = new Node(500, 200, new NodeType('基础节点', '输出节点', 3, 3));
+        var node1 = new Node(100, 100, new NodeType(
+            '基础节点', 
+            '游戏设计动机', 
+            2, 
+            3, 
+            (data) => {
+                if(data!=null){
+                    // 输入节点的处理逻辑
+                    return `${data}->我的节点1`;
+                }
+                return `我的节点1`;
+            }
+        ));
+        var node2 = new Node(500, 200, new NodeType(
+            '基础节点', 
+            '游戏设计体验', 
+            3, 
+            3, 
+            (data) => {
+                if(data!=null){
+                    let result = `${data}->我的节点2`;
+                    document.getElementById("proposalContent").innerHTML = result; // 使用 innerHTML 以支持 HTML
+                    document.getElementById("proposal").style.display = "block";
+                    return result;
+                }
+                return `我的节点2`;
+            }
+        ));
         NodeManager.registerNode(node1);
+        // NodeManager.registerNode(node2);
         node1.addInput();
         node1.addInput();
         node1.addOutput();
@@ -50,7 +81,9 @@
                 menu.remove();
             }
         });
-
+        document.getElementById('closeProposal').addEventListener('click', function() {
+            document.getElementById('proposal').style.display = 'none';
+        });
     </script>
 
 

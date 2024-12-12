@@ -13,6 +13,52 @@ class NodeManager {
      */
     static nodes = {};
 
+    static predefinedNodeTypes = {
+        '数据处理': [
+            {
+                type: '数据转换',
+                input: 1,
+                output: 1,
+                processFunction: (data) => {
+                    return data.toString().toUpperCase();
+                }
+            },
+            {
+                type: '数据过滤',
+                input: 1,
+                output: 1,
+                processFunction: (data) => {
+                    return data.toString().replace(/[^a-zA-Z0-9]/g, '');
+                }
+            }
+        ],
+        '数学运算': [
+            {
+                type: '加法器',
+                input: 2,
+                output: 1,
+                processFunction: (data) => {
+                    const numbers = data.toString().match(/\d+/g);
+                    if (numbers && numbers.length >= 2) {
+                        return Number(numbers[0]) + Number(numbers[1]);
+                    }
+                    return data;
+                }
+            },
+            {
+                type: '乘法器',
+                input: 2,
+                output: 1,
+                processFunction: (data) => {
+                    const numbers = data.toString().match(/\d+/g);
+                    if (numbers && numbers.length >= 2) {
+                        return Number(numbers[0]) * Number(numbers[1]);
+                    }
+                    return data;
+                }
+            }
+        ]
+    };
 
     /**
      * 注册节点
@@ -30,7 +76,7 @@ class NodeManager {
         if (existingNode) {
             throw new Error(`节点类型 '${node.nodeType.type}' 已存在于 '${node.nodeType.parentType}' 分类中`);
         }
-        NodeManager.nodes[node.nodeType.parentType].push({ type: node.nodeType.type, input: node.nodeType.input, output: node.nodeType.output });
+        NodeManager.nodes[node.nodeType.parentType].push({ type: node.nodeType.type, input: node.nodeType.input, output: node.nodeType.output, processFunction: node.nodeType.processFunction });
         NodeManager.updateNodeList();
     }
 
@@ -157,7 +203,88 @@ class Node {
 
         this.initializeResize(resizeHandle);
         this.setupPortEvents();
+
+        // 添加数据相关的属性
+        this.data = null;  // 节点的数据
+        this.isStartNode = false; // 是否为起始节点
+        this.processed = false; // 标记节点是否已处理过数据
+        
+        // 添加运行按钮
+        this.addRunButton();
+
+        // 保存节点实例的引用
+        this.documentElement.node = this;
     }
+
+    // 添加运行按钮
+    addRunButton() {
+        const runButton = document.createElement('button');
+        runButton.className = 'node-run-button';
+        runButton.textContent = '运行';
+        runButton.onclick = (e) => {
+            e.stopPropagation();
+            this.run();
+        };
+        this.documentElement.appendChild(runButton);
+    }
+
+    // 设置为起始节点
+    setAsStartNode() {
+        this.isStartNode = true;
+        this.documentElement.classList.add('start-node');
+        // 设置初始数据
+        this.data = "这是起始数据";
+    }
+
+    // 运行节点
+    async run() {
+        if (this.processed) {
+            console.log('节点已处理过，跳过');
+            return;
+        }
+
+        // 处理数据
+        await this.processData();
+        
+        // 标记为已处理
+        this.processed = true;
+        
+        // 获取所有输出连接
+        const outputConnections = this.connections.filter(conn => conn.from.parentNode === this.documentElement);
+        
+        // 向所有输出端口传递数据
+        for (const conn of outputConnections) {
+            const targetNode = conn.to.parentNode.node; // 获取目标节点的引用
+            targetNode.data = this.data; // 传递数据
+            await targetNode.run(); // 运行下一个节点
+        }
+    }
+
+    // 处理数据的方法
+    async processData() {
+        // 这里可以根据节点类型进行不同的数据处理
+        if (this.isStartNode) {
+            console.log('起始节点，使用初始数据:', this.data);
+            return;
+        }
+
+        // 模拟数据处理
+        console.log('处理前的数据:', this.data);
+        // 使用节点类型定义的处理函数
+        this.data = await this.nodeType.processFunction(this.data);
+        console.log('处理后的数据:', this.data);
+        
+        // 模拟处理时间
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // 重置节点状态
+    reset() {
+        this.data = null;
+        this.processed = false;
+        this.documentElement.classList.remove('processing', 'processed');
+    }
+
     initEvents() {
         this.documentElement.addEventListener('mousedown', this.setupNodeDrag.bind(this));
         // this.documentElement.addEventListener('mousemove', this.moveNode.bind(this));
@@ -700,10 +827,17 @@ class Node {
 
 
 class NodeType {
-    constructor(parentType, type, input, output) {
+    constructor(parentType, type, input, output, processFunction) {
         this.parentType = parentType;
         this.type = type;
         this.input = input;
         this.output = output;
+        // 添加数据处理函数
+        this.processFunction = processFunction || this.defaultProcess;
+    }
+
+    // 默认的处理函数
+    defaultProcess(data) {
+        return `${data} -> 经过默认处理`;
     }
 }
