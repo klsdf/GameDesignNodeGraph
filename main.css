@@ -4,14 +4,22 @@ html,body{
     margin: 0;
     padding: 0;
 }
-
+body
+{
+    background-image: url(./img/bg.jpg);
+    backdrop-filter: blur(5px);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
 .node {
     /* width: 100px; */
     /* height: 50px; */
     min-width: 100px;
     min-height: 50px;
-    background-color: rgba(128, 128, 128, 0.5);
-    border: 2px solid #45a049;
+    background-color: rgba(128, 128, 128, 0.555);
+    border: 2px solid #1b1b1b;
     border-radius: 5px;
     position: absolute;
     cursor: move;
@@ -23,19 +31,20 @@ html,body{
     border-radius: 20px;
     font-size: 10px;
     backdrop-filter: blur(10px);
-    box-shadow: -1px 2px 18px 13px rgb(0 0 0 / 20%)
+    box-shadow: -1px 2px 18px 13px rgba(192, 192, 192, 0.397)
 }
 
+.node.active{
+    border: 2px solid #009100;
+    box-shadow: -1px 2px 18px 13px rgba(56, 116, 0, 0.397);
+    background-color: rgba(104, 255, 74, 0.322);
+}
 .node * {
     margin: 10px;
 }
 
-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
+
+
 .context-menu {
     position: fixed;
     background: white;
@@ -74,17 +83,14 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #a0a0a0;
+    /* background-color: #a0a0a0; */
+    background-color: transparent;
     overflow: visible;
     
     /* background: linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px),
     linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px); */
     /* background-size: 20px 20px; */
 }
-body {
-   overflow: hidden;
-}
-
 
 
 #button-container {
@@ -143,7 +149,7 @@ svg {
 }
 .main-path {
     stroke: #007bff;
-    stroke-width: 3;
+    stroke-width: 7;
     fill: none;
     stroke-linecap: round;
     stroke-dasharray: 5, 5;

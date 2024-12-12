@@ -21,7 +21,6 @@
     <script src="./js/graph.js"></script>
     <script src="./js/component.js"></script>
 
-    <!-- <script src="./js/editor.js"></script> -->
     <script>
  
       
@@ -34,146 +33,6 @@
          node1.connectTo(2,node2,1);
         NodeManager.registerNode(node1);
 
-
-
-        // const container = document.getElementById('container');
-        // const canvas = document.getElementById('connectionCanvas');
-        // const ctx = canvas.getContext('2d');
-        // let connections = [];
-
-        // 设置canvas尺寸为窗口大小
-        // function resizeCanvas() {
-        //     canvas.width = window.innerWidth;
-        //     canvas.height = window.innerHeight;
-        // }
-
-        // resizeCanvas();
-        // window.addEventListener('resize', resizeCanvas);
-
-        // 在 resizeCanvas() 函数后添加拖拽相关的变量和事件监听
-        // let isMiddleMouseDown = false;
-        // let lastMouseX = 0;
-        // let lastMouseY = 0;
-        // let containerOffsetX = 0;
-        // let containerOffsetY = 0;
-
-        // container.style.position = 'absolute';
-        // container.style.left = '0px';
-        // container.style.top = '0px';
-
-
-
-
-        
-
-     
-
-        // // 删除节点
-        // function deleteNode(node) {
-        //     connections = connections.filter(conn =>
-        //         conn.from !== node.id && conn.to !== node.id);
-        //     node.remove();
-        //     // drawAllConnections();
-        // }
-
-        // // 开始连接
-        // function startConnection(fromNode) {
-        //     const tempLine = {
-        //         from: fromNode,
-        //         to: { x: 0, y: 0 }
-        //     };
-
-        //     function onMouseMove(e) {
-        //         tempLine.to.x = e.clientX;
-        //         tempLine.to.y = e.clientY;
-        //         drawAllConnections();
-        //         // 绘制临时连线
-        //         drawTempConnection(tempLine);
-        //     }
-
-        //     function onMouseUp(e) {
-        //         document.removeEventListener('mousemove', onMouseMove);
-        //         document.removeEventListener('mouseup', onMouseUp);
-
-        //         // 检查是否放在了其他节点上
-        //         const targetNode = document.elementsFromPoint(e.clientX, e.clientY)
-        //             .find(el => el.classList.contains('node') && el !== fromNode);
-
-        //         if (targetNode) {
-        //             connections.push({
-        //                 from: fromNode.id,
-        //                 to: targetNode.id
-        //             });
-        //             drawAllConnections();
-        //         }
-        //     }
-
-        //     document.addEventListener('mousemove', onMouseMove);
-        //     document.addEventListener('mouseup', onMouseUp);
-        // }
-
-        // // 添加临时连线绘制函数
-        // function drawTempConnection(tempLine) {
-        //     const x1 = tempLine.from.offsetLeft + tempLine.from.offsetWidth / 2;
-        //     const y1 = tempLine.from.offsetTop + tempLine.from.offsetHeight / 2;
-        //     const x2 = tempLine.to.x;
-        //     const y2 = tempLine.to.y;
-
-        //     const dx = Math.abs(x2 - x1) * 0.5;
-        //     const cp1x = x1 + dx;
-        //     const cp1y = y1;
-        //     const cp2x = x2 - dx;
-        //     const cp2y = y2;
-
-        //     ctx.beginPath();
-        //     ctx.moveTo(x1, y1);
-        //     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-        //     ctx.strokeStyle = '#666';
-        //     ctx.setLineDash([5, 5]); // 添加虚线效果
-        //     ctx.lineWidth = 2;
-        //     ctx.stroke();
-        //     ctx.setLineDash([]); // 恢复实线
-        // }
-
-        // // 绘制所有连接
-        // function drawAllConnections() {
-        //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-        //     connections.forEach(conn => {
-        //         const fromNode = document.getElementById(conn.from);
-        //         const toNode = document.getElementById(conn.to);
-        //         if (fromNode && toNode) {
-        //             drawConnection(fromNode, toNode);
-        //         }
-        //     });
-        // }
-
-        // // 绘制单个连接
-        // function drawConnection(node1, node2) {
-        //     const x1 = node1.offsetLeft + node1.offsetWidth / 2;
-        //     const y1 = node1.offsetTop + node1.offsetHeight / 2;
-        //     const x2 = node2.offsetLeft + node2.offsetWidth / 2;
-        //     const y2 = node2.offsetTop + node2.offsetHeight / 2;
-
-        //     const dx = Math.abs(x2 - x1) * 0.5;
-        //     const cp1x = x1 + dx;
-        //     const cp1y = y1;
-        //     const cp2x = x2 - dx;
-        //     const cp2y = y2;
-
-        //     ctx.beginPath();
-        //     ctx.moveTo(x1, y1);
-        //     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-        //     ctx.strokeStyle = '#666';
-        //     ctx.lineWidth = 2;
-        //     ctx.stroke();
-        // }
-
-        // // 存储最后的右键菜单位置
-        // let lastContextMenuX = 0;
-        // let lastContextMenuY = 0;
-
-
-
         // 点击空白处关闭菜单
         document.addEventListener('click', function (e) {
             const menu = document.querySelector('.context-menu');
@@ -182,17 +41,6 @@
             }
         });
 
-
-
-        // // 添加删除连接的函数
-        // function deleteConnections(node) {
-        //     // 过滤掉与该节点相关的连接
-        //     connections = connections.filter(conn =>
-        //         conn.from !== node.id && conn.to !== node.id);
-        //     drawAllConnections();
-        // }
-
-     
 
     </script>
 

@@ -82,7 +82,7 @@ class Node {
         this.x = x;
         this.y = y;
         this.nodeType = nodeType;
-        this.backgroundColor = 'rgba(76, 175, 80, 0.27)';
+        // this.backgroundColor = 'rgba(150, 150, 150, 0.27)';
         this.components = [];//组件
         this.connections = [];//连接的节点
         // 添加端口容器
@@ -98,7 +98,7 @@ class Node {
         this.documentElement.style.top = (y - 25) + 'px';
         this.documentElement.style.width = '200px';
         this.documentElement.style.height = '300px';
-        this.documentElement.style.backgroundColor = this.backgroundColor;
+        // this.documentElement.style.backgroundColor = this.backgroundColor;
         // this.documentElement.textContent = this.nodeType.type;
 
         this.addComponent(new TitleComponent(this.nodeType.type));
@@ -127,6 +127,29 @@ class Node {
         this.documentElement.addEventListener('mousedown', this.setupNodeDrag.bind(this));
         // this.documentElement.addEventListener('mousemove', this.moveNode.bind(this));
         // document.addEventListener('mouseup', this.endNodeDrag.bind(this));
+
+        // 添加点击事件处理
+        this.documentElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止事件冒泡
+            
+            // 移除所有其他节点的 active 类
+            document.querySelectorAll('.node').forEach(node => {
+                node.classList.remove('active');
+            });
+            
+            // 为当前节点添加 active 类
+            this.documentElement.classList.add('active');
+        });
+
+        // 在 document 上添加点击事件，用于取消选中
+        document.addEventListener('click', (e) => {
+            // 如果点击的不是节点，则移除所有 active 类
+            if (!e.target.closest('.node')) {
+                document.querySelectorAll('.node').forEach(node => {
+                    node.classList.remove('active');
+                });
+            }
+        });
     }
 
     /*^
@@ -270,7 +293,7 @@ class Node {
     }
 
     updateConnection(connection) {
-        console.log( connection.from,connection.to)
+        // console.log( connection.from,connection.to)
         const scale = GraphManager.zoom;
         const fromRect = connection.from.getBoundingClientRect();
         const toRect = connection.to.getBoundingClientRect();
@@ -463,8 +486,8 @@ class Node {
 
         // 设置样式
         ConnectionUtils.setStyle(connection, {
-            stroke: '#666',
-            strokeWidth: '2'
+            stroke: '#000',
+            strokeWidth: '5'
         });
     }
 
@@ -594,8 +617,10 @@ class Node {
 
         // 设置样式
         ConnectionUtils.setStyle(connection, {
-            stroke: '#666',
-            strokeWidth: '2'
+            stroke: '#fff',
+            strokeWidth: '5',
+            strokeDasharray: '10, 10',
+
         });
     }
 
