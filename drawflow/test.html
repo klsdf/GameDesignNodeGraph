@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawflow Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #drawflow {
+            width: 100%;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="drawflow"></div>
+    <script src="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.js"></script>
+    <script>
+        const editor = new Drawflow(document.getElementById('drawflow'));
+        editor.start();
+
+        // Add a simple node
+        const nodeData = {
+            name: 'Node 1',
+            data: {},
+            class: 'node-class',
+            html: `<div>
+                      <div class="title">Node 2</div>
+                      <div class="content">This is a simple node</div>
+                   </div>`
+        };
+
+        editor.addNode('Node 1', 2, 1, 100, 100, 'node-class', nodeData.data, nodeData.html);
+        editor.addNode('Node 1', 3, 1, 100, 100, 'node-class', nodeData.data, nodeData.html)
+        ;
+    </script>
+</body>
+</html>
