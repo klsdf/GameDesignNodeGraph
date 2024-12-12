@@ -26,6 +26,7 @@ class NodeManager {
         const existingNode = NodeManager.nodes[node.nodeType.parentType].find(
             node => node.type === node.nodeType.type
         );
+        console.log("existingNode", existingNode);
         if (existingNode) {
             throw new Error(`节点类型 '${node.nodeType.type}' 已存在于 '${node.nodeType.parentType}' 分类中`);
         }
@@ -124,7 +125,7 @@ class Node {
         // this.backgroundColor = 'rgba(150, 150, 150, 0.27)';
         this.components = [];//组件
         this.connections = [];//连接的节点
-        // 添加端口容器
+        // 修改：初始化空的端口数组
         this.inputPorts = [];
         this.outputPorts = [];
 
@@ -145,21 +146,16 @@ class Node {
         this.addComponent(new VideoComponent('./第17课.mp4'));
 
         this.initEvents();
-        // 创建输入输出端口
-        this.createPorts();
-
+        
+        // 移除原有的 createPorts 调用
+        
         GraphManager.container.appendChild(this.documentElement);
-        // drawAllConnections();
 
-        // 添加调整大小的手柄
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
         this.documentElement.appendChild(resizeHandle);
 
-        // 添加调整大小的事件处理
         this.initializeResize(resizeHandle);
-
-        // 为端口添加连线事件
         this.setupPortEvents();
     }
     initEvents() {
@@ -228,13 +224,13 @@ class Node {
 
     updatePortPositions() {
         // 更新输入端口位置
-        const inputSpacing = this.documentElement.offsetHeight / (this.nodeType.input + 1);
+        const inputSpacing = this.documentElement.offsetHeight / (this.inputPorts.length + 1);
         this.inputPorts.forEach((port, index) => {
             port.style.top = `${inputSpacing * (index + 1)}px`;
         });
 
         // 更新输出端口位置
-        const outputSpacing = this.documentElement.offsetHeight / (this.nodeType.output + 1);
+        const outputSpacing = this.documentElement.offsetHeight / (this.outputPorts.length + 1);
         this.outputPorts.forEach((port, index) => {
             port.style.top = `${outputSpacing * (index + 1)}px`;
         });
@@ -677,6 +673,28 @@ class Node {
         const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
 
         ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
+    }
+
+    // 新增：添加输入端口方法
+    addInput() {
+        const inputPort = document.createElement('div');
+        inputPort.className = 'port input-port';
+        this.inputPorts.push(inputPort);
+        this.documentElement.appendChild(inputPort);
+        this.updatePortPositions();
+        this.setupPortEvents();
+        return inputPort;
+    }
+
+    // 新增：添加输出端口方法
+    addOutput() {
+        const outputPort = document.createElement('div');
+        outputPort.className = 'port output-port';
+        this.outputPorts.push(outputPort);
+        this.documentElement.appendChild(outputPort);
+        this.updatePortPositions();
+        this.setupPortEvents();
+        return outputPort;
     }
 }
 

@@ -34,13 +34,15 @@
         GraphManager.init();
         var node1 = new Node(100, 100, new NodeType('基础节点', '输入节点', 2, 3));
         var node2 = new Node(500, 200, new NodeType('基础节点', '输出节点', 3, 3));
-        node1.connectTo(2, node2, 0);
-        node1.connectTo(2, node2, 2);
-        node1.connectTo(1, node2, 1);
-        node1.connectTo(2, node2, 1);
         NodeManager.registerNode(node1);
-       
+        node1.addInput();
+        node1.addInput();
+        node1.addOutput();
+        node1.addOutput();
+        node1.addOutput();
+        node2.addInput();
 
+        node1.connectTo(2, node2, 0);
         // 点击空白处关闭菜单
         document.addEventListener('click', function (e) {
             const menu = document.querySelector('.context-menu');
