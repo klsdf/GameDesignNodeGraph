@@ -220,7 +220,7 @@ class Node {
     addRunButton() {
         const runButton = document.createElement('button');
         runButton.className = 'node-run-button';
-        runButton.textContent = '运行';
+        runButton.textContent = '▶';  // 使用播放图标替代文字
         runButton.onclick = (e) => {
             e.stopPropagation();
             this.run();
@@ -286,13 +286,10 @@ class Node {
     }
 
     initEvents() {
-        this.documentElement.addEventListener('mousedown', this.setupNodeDrag.bind(this));
-        // this.documentElement.addEventListener('mousemove', this.moveNode.bind(this));
-        // document.addEventListener('mouseup', this.endNodeDrag.bind(this));
-
-        // 添加点击事件处理
-        this.documentElement.addEventListener('click', (e) => {
-            e.stopPropagation(); // 阻止事件冒泡
+        // 修改mousedown事件处理
+        this.documentElement.addEventListener('mousedown', (e) => {
+            // 如果点击的是端口或其他控件，不处理
+            if (e.target !== this.documentElement) return;
             
             // 移除所有其他节点的 active 类
             document.querySelectorAll('.node').forEach(node => {
@@ -301,6 +298,9 @@ class Node {
             
             // 为当前节点添加 active 类
             this.documentElement.classList.add('active');
+            
+            // 开始拖拽处理
+            this.setupNodeDrag(e);
         });
 
         // 在 document 上添加点击事件，用于取消选中
@@ -489,54 +489,6 @@ class Node {
 
         ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
     }
-
-    // connectTo(targetNode) {
-    //     // 检查是否已经存在连接
-    //     if (this.connections.some(conn =>
-    //         conn.from === this && conn.to === targetNode ||
-    //         conn.from === targetNode && conn.to === this
-    //     )) {
-    //         return;
-    //     }
-
-    //     // 创建或获取 SVG 容器
-    //     let svg = document.getElementById('connection-svg');
-    //     if (!svg) {
-    //         svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    //         svg.id = 'connection-svg';
-    //         svg.style.position = 'absolute';
-    //         svg.style.top = '0';
-    //         svg.style.left = '0';
-    //         svg.style.width = '100%';
-    //         svg.style.height = '100%';
-    //         svg.style.pointerEvents = 'none';
-    //         svg.style.zIndex = '1';
-    //         GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
-    //     }
-
-    //     // 使用 ConnectionUtils 创建连线
-    //     const connection = ConnectionUtils.drawConnection(svg);
-
-    //     // 存储连接信息
-    //     const connectionInfo = {
-    //         from: this,
-    //         to: targetNode,
-    //         path: connection
-    //     };
-
-    //     this.connections.push(connectionInfo);
-    //     targetNode.connections.push(connectionInfo);
-
-    //     // 更新连线位置
-    //     this.updateConnection(connectionInfo);
-
-    //     // 设置样式
-    //     ConnectionUtils.setStyle(connection, {
-    //         stroke: '#666',
-    //         strokeDasharray: '10, 10',
-    //         strokeWidth: '5'
-    //     });
-    // }
 
     // 添加删除连接的方法
     removeConnection(connection) {
