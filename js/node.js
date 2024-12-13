@@ -245,40 +245,36 @@ class Node {
             // 在处理数据前清空当前节点的输入和输出数据
             this.clearData();
 
-            // 如果是起始节点，直接处理数据
             if (this.isStartNode) {
                 await this.processData();
             } else {
                 // 对于非起始节点，先收集所有上游节点的数据
-                // 按输入端口分组收集数据
                 const inputPortsMap = new Map(); // 用于存储每个输入端口的连接
 
-                // 首先将所有连接按输入端口分组
-                this.connections.forEach(conn => {
-                    if (conn.to.parentNode === this.documentElement) {
-                        const toPortIndex = this.inputPorts.indexOf(conn.to);
-                        if (!inputPortsMap.has(toPortIndex)) {
-                            inputPortsMap.set(toPortIndex, []);
-                        }
-                        inputPortsMap.get(toPortIndex).push(conn);
+                // 获取所有输入连接，并按端口索引分组
+                const incomingConnections = this.getIncomingConnections();
+                
+                // 使用 Set 来存储每个端口的唯一数据
+                const portDataMap = new Map();
+                
+                incomingConnections.forEach(conn => {
+                    const toPortIndex = this.inputPorts.indexOf(conn.to);
+                    const sourceNode = conn.from.parentNode.node;
+                    const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
+                    const outputData = sourceNode.outputPortsData[fromPortIndex];
+                    
+                    if (!portDataMap.has(toPortIndex)) {
+                        portDataMap.set(toPortIndex, new Set());
+                    }
+                    
+                    if (outputData !== null) {
+                        portDataMap.get(toPortIndex).add(outputData);
                     }
                 });
 
-                // 然后对每个输入端口收集数据
-                for (const [portIndex, connections] of inputPortsMap) {
-                    // 为每个输入端口创建一个新的数据数组
-                    this.inputPortsData[portIndex] = [];
-                    
-                    // 收集连接到这个端口的所有上游输出
-                    connections.forEach(conn => {
-                        const sourceNode = conn.from.parentNode.node;
-                        const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
-                        const outputData = sourceNode.outputPortsData[fromPortIndex];
-                        
-                        if (outputData !== null) {
-                            this.inputPortsData[portIndex].push(outputData);
-                        }
-                    });
+                // 将 Set 转换回数组并保存到 inputPortsData
+                for (const [portIndex, dataSet] of portDataMap) {
+                    this.inputPortsData[portIndex] = Array.from(dataSet);
                 }
 
                 // 处理当前节点的数据
@@ -292,13 +288,15 @@ class Node {
             });
 
             // 运行下游节点
-            const outputConnections = this.connections.filter(conn => 
-                conn.from.parentNode === this.documentElement
-            );
+            const outgoingConnections = this.getOutgoingConnections();
+            const processedNodes = new Set(); // 用于跟踪已处理的节点
             
-            for (const conn of outputConnections) {
+            for (const conn of outgoingConnections) {
                 const targetNode = conn.to.parentNode.node;
-                await targetNode.run();
+                if (!processedNodes.has(targetNode)) {
+                    processedNodes.add(targetNode);
+                    await targetNode.run();
+                }
             }
 
             this.documentElement.classList.remove('processing');
@@ -440,7 +438,7 @@ class Node {
     // 设置节点拖拽
     setupNodeDrag(e) {
         if (!e || typeof e.button === 'undefined') {
-            console.error('传入的��件对象无效');
+            console.error('传入的件对象无效');
             return;
         }
         if (e.button !== 0) return; // 只响应左键
@@ -526,7 +524,17 @@ class Node {
 
     //连接相关
     updateAllConnections() {
-        this.connections.forEach(conn => this.updateConnection(conn));
+        // 更新当前节点作为源节点的所有连接
+        this.connections.forEach(conn => {
+            this.updatePortConnection(conn);
+        });
+
+        // 更新当前节点作为目标节点的所有连接
+        const incomingConnections = this.getIncomingConnections();
+        incomingConnections.forEach(conn => {
+            const sourceNode = conn.from.parentNode.node;
+            sourceNode.updatePortConnection(conn);
+        });
     }
 
     updateConnection(connection) {
@@ -602,7 +610,6 @@ class Node {
         // 通过右下角的控制块调整大小
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
-            console.log("mousemove", isResizing);
 
             const deltaX = e.clientX - originalX;
             const deltaY = e.clientY - originalY;
@@ -617,13 +624,15 @@ class Node {
             this.updatePortPositions();
             
             // 更新所有连接的位置
-            this.connections.forEach(connection => {
-                this.updatePortConnection(connection);
-            });
+            this.updateAllConnections();
         });
 
         document.addEventListener('mouseup', () => {
-            isResizing = false;
+            if (isResizing) {
+                isResizing = false;
+                // 确保在调整大小结束时也更新一次连接
+                this.updateAllConnections();
+            }
         });
     }
 
@@ -715,11 +724,8 @@ class Node {
         const fromNode = fromPort.parentNode.node;
         const toNode = toPort.parentNode.node;
         
-        // 只保存连接信息
+        // 修改：只在源节点保存连接信息
         fromNode.connections.push(connectionInfo);
-        if (fromNode !== toNode) {
-            toNode.connections.push(connectionInfo);
-        }
         
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
@@ -904,6 +910,28 @@ class Node {
         this.inputPortsData = this.inputPorts.map(() => []);
         // 清空所有输出端口数据
         this.outputPortsData = this.outputPorts.map(() => null);
+    }
+
+    // 添加新的辅助方法来获取输入和输出连接
+    getIncomingConnections() {
+        // 只遍历源节点的connections
+        const incomingConnections = [];
+        document.querySelectorAll('.node').forEach(nodeElement => {
+            const sourceNode = nodeElement.node;
+            if (sourceNode) {
+                sourceNode.connections.forEach(conn => {
+                    if (conn.to.parentNode === this.documentElement) {
+                        incomingConnections.push(conn);
+                    }
+                });
+            }
+        });
+        return incomingConnections;
+    }
+
+    getOutgoingConnections() {
+        // 返回当前节点作为源节点的所有连接
+        return this.connections.filter(conn => conn.from.parentNode === this.documentElement);
     }
 }
 
