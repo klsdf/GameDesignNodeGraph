@@ -288,3 +288,8 @@ svg {
 .node {
     z-index: 1;
 }
+
+.port-highlight {
+    background-color: #fff;
+    box-shadow: 0 0 5px #fff;
+}

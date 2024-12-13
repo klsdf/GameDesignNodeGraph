@@ -13,53 +13,6 @@ class NodeManager {
      */
     static nodes = {};
 
-    static predefinedNodeTypes = {
-        '数据处理': [
-            {
-                type: '数据转换',
-                input: 1,
-                output: 1,
-                processFunction: (data) => {
-                    return data.toString().toUpperCase();
-                }
-            },
-            {
-                type: '数据过滤',
-                input: 1,
-                output: 1,
-                processFunction: (data) => {
-                    return data.toString().replace(/[^a-zA-Z0-9]/g, '');
-                }
-            }
-        ],
-        '数学运算': [
-            {
-                type: '加法器',
-                input: 2,
-                output: 1,
-                processFunction: (data) => {
-                    const numbers = data.toString().match(/\d+/g);
-                    if (numbers && numbers.length >= 2) {
-                        return Number(numbers[0]) + Number(numbers[1]);
-                    }
-                    return data;
-                }
-            },
-            {
-                type: '乘法器',
-                input: 2,
-                output: 1,
-                processFunction: (data) => {
-                    const numbers = data.toString().match(/\d+/g);
-                    if (numbers && numbers.length >= 2) {
-                        return Number(numbers[0]) * Number(numbers[1]);
-                    }
-                    return data;
-                }
-            }
-        ]
-    };
-
     /**
      * 注册节点
      * @param {Node} node 
@@ -131,9 +84,54 @@ class ConnectionUtils {
         return connection;
     }
 
+    static getSvgContainer() {
+        let svg = document.getElementById('connection-svg');
+        if (!svg) {
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.id = 'connection-svg';
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '1';
+            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
+        }
+        return svg;
+    }
+
+    static createTempLine() {
+        const tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        tempLine.setAttribute('stroke', '#fff');
+        tempLine.setAttribute('stroke-width', '5');
+        tempLine.setAttribute('stroke-dasharray', '10, 10');
+        tempLine.setAttribute('fill', 'none');
+        return tempLine;
+    }
+
+    static createConnection(fromPort, toPort) {
+        const svg = this.getSvgContainer();
+        const connection = this.drawConnection(svg);
+        
+        const connectionInfo = {
+            from: fromPort,
+            to: toPort,
+            path: connection
+        };
+
+        this.setStyle(connection, {
+            stroke: '#fff',
+            strokeWidth: '5',
+            strokeDasharray: '10, 10'
+        });
+
+        return connectionInfo;
+    }
+
     static updateConnection(connection, startX, startY, endX, endY, curvature = 0.5) {
         const path = connection.children[0];
-        const lineCurve = ConnectionUtils.createCurvature(startX, startY, endX, endY, curvature);
+        const lineCurve = this.createCurvature(startX, startY, endX, endY, curvature);
         path.setAttributeNS(null, 'd', lineCurve);
     }
 
@@ -542,20 +540,33 @@ class Node {
 
     // 添加删除连接的方法
     removeConnection(connection) {
+        // 从当前节点的连接列表中移除
         const index = this.connections.indexOf(connection);
         if (index > -1) {
             this.connections.splice(index, 1);
-            connection.path.remove();
         }
+
+        // 从另一个节点的连接列表中也移除
+        const otherNode = connection.from.parentNode.node === this ? 
+            connection.to.parentNode.node : 
+            connection.from.parentNode.node;
+        
+        const otherIndex = otherNode.connections.indexOf(connection);
+        if (otherIndex > -1) {
+            otherNode.connections.splice(otherIndex, 1);
+        }
+
+        // 移除SVG连线元素
+        connection.path.remove();
     }
 
     // 删除所有连接
     removeAllConnections() {
-        while (this.connections.length > 0) {
-            const connection = this.connections[0];
-            connection.from.removeConnection(connection);
-            connection.to.removeConnection(connection);
-        }
+        // 创建连接数组的副本，因为在遍历过程中会修改数组
+        const connectionsToRemove = [...this.connections];
+        connectionsToRemove.forEach(connection => {
+            this.removeConnection(connection);
+        });
     }
 
     // 初始化节点大小调整
@@ -577,27 +588,27 @@ class Node {
             e.stopPropagation(); // 防止与节点拖动冲突
         });
 
-
-
         // 通过右下角的控制块调整大小
         document.addEventListener('mousemove', (e) => {
-
             if (!isResizing) return;
             console.log("mousemove", isResizing);
 
             const deltaX = e.clientX - originalX;
             const deltaY = e.clientY - originalY;
 
-            const newWidth = Math.max(200, originalWidth + deltaX); // 最小宽度 100px
-            const newHeight = Math.max(200, originalHeight + deltaY); // 最小高度 50px
+            const newWidth = Math.max(200, originalWidth + deltaX); // 最小宽度 200px
+            const newHeight = Math.max(200, originalHeight + deltaY); // 最小高度 200px
 
             this.documentElement.style.width = newWidth + 'px';
             this.documentElement.style.height = newHeight + 'px';
 
-            // 如果需要，触发重绘连线
-            if (typeof drawAllConnections === 'function') {
-                // drawAllConnections();
-            }
+            // 更新端口位置
+            this.updatePortPositions();
+            
+            // 更新所有连接的位置
+            this.connections.forEach(connection => {
+                this.updatePortConnection(connection);
+            });
         });
 
         document.addEventListener('mouseup', () => {
@@ -608,6 +619,7 @@ class Node {
     setupPortEvents() {
         let startPort = null;
         let startIsOutput = false;
+        let isDrawing = false;  // 添加绘制状态标记
 
         // 为所有端口添加事件处理
         const addPortEvents = (port, isOutput) => {
@@ -615,23 +627,50 @@ class Node {
                 e.stopPropagation(); // 防止与节点拖动冲突
                 startPort = port;
                 startIsOutput = isOutput;
+                isDrawing = true;  // 开始绘制
                 console.log('Start drawing connection from:', startPort);
                 this.startDrawingConnection(e);
             });
 
-            port.addEventListener('mouseup', (e) => {
-                console.log('Attempting to connect to:', port);
-                if (startPort && startPort !== port) {
-                    // 确保一个是输出端口，一个是输入端口
-                    if (startIsOutput !== isOutput) {
-                        const fromNode = startIsOutput ? this : e.target.parentNode;
-                        const toNode = startIsOutput ? e.target.parentNode : this;
-                        fromNode.connectPorts(startPort, port);
-                    }
+            // 当鼠标移动到端口上时添加高亮效果
+            port.addEventListener('mouseover', (e) => {
+                if (isDrawing && startPort !== port) {
+                    port.classList.add('port-highlight');
                 }
-                startPort = null;
+            });
+
+            // 移出时移除高亮
+            port.addEventListener('mouseout', (e) => {
+                port.classList.remove('port-highlight');
             });
         };
+
+        // 在document上监听mouseup事件
+        document.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            
+            // 查找鼠标释放位置下的端口元素
+            const portElement = document.elementFromPoint(e.clientX, e.clientY);
+            if (portElement && portElement.classList.contains('port')) {
+                const isTargetOutput = portElement.classList.contains('output-port');
+                
+                // 确保一个是输出端口，一个是输入端口
+                if (startIsOutput !== isTargetOutput) {
+                    const fromPort = startIsOutput ? startPort : portElement;
+                    const toPort = startIsOutput ? portElement : startPort;
+                    const fromNode = fromPort.parentNode.node;
+                    fromNode.connectPorts(fromPort, toPort);
+                }
+            }
+
+            // 重置状态
+            isDrawing = false;
+            startPort = null;
+            // 移除所有端口的高亮效果
+            document.querySelectorAll('.port').forEach(port => {
+                port.classList.remove('port-highlight');
+            });
+        });
 
         // 为所有输入输出端口添加事件
         this.inputPorts.forEach(port => addPortEvents(port, false));
@@ -640,40 +679,20 @@ class Node {
 
     connectPorts(fromPort, toPort) {
         console.log('Connecting ports:', fromPort, toPort);
-        let svg = document.getElementById('connection-svg');
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.id = 'connection-svg';
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '1';
-            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
+        const connectionInfo = ConnectionUtils.createConnection(fromPort, toPort);
+        
+        // 获取两个节点的引用
+        const fromNode = fromPort.parentNode.node;
+        const toNode = toPort.parentNode.node;
+        
+        // 在两个节点中都保存连接信息
+        fromNode.connections.push(connectionInfo);
+        if (fromNode !== toNode) {  // 如果不是同一个节点，也在目标节点中保存连接
+            toNode.connections.push(connectionInfo);
         }
-
-        // 使用 ConnectionUtils 创建连线
-        const connection = ConnectionUtils.drawConnection(svg);
-
-        // 存储连接信息
-        const connectionInfo = {
-            from: fromPort,
-            to: toPort,
-            path: connection
-        };
-
-        this.connections.push(connectionInfo);
-
+        
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
-
-        // 设置样式
-        ConnectionUtils.setStyle(connection, {
-            stroke: '#000',
-            strokeWidth: '5'
-        });
     }
 
     updatePortConnection(connection) {
@@ -690,47 +709,25 @@ class Node {
         ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
     }
 
+
+    
+    /**
+     * 开始绘制连接
+     */
     startDrawingConnection(e) {
-        const tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        tempLine.setAttribute('stroke', '#666');
-        tempLine.setAttribute('stroke-width', '2');
-        tempLine.setAttribute('fill', 'none');
-
-        // 确保 SVG 容器存在
-        let svg = document.getElementById('connection-svg');
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.id = 'connection-svg';
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '1';
-            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
-        }
-
+        const tempLine = ConnectionUtils.createTempLine();
+        const svg = ConnectionUtils.getSvgContainer();
         svg.appendChild(tempLine);
 
-        const scale = GraphManager.zoom; // 获取当前缩放因子
+        const scale = GraphManager.zoom;
         const startX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
         const startY = (e.clientY - GraphManager.container.getBoundingClientRect().top) / scale;
 
         const updateLine = (e) => {
             const endX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
             const endY = (e.clientY - GraphManager.container.getBoundingClientRect().top) / scale;
-
-            // 创建贝塞尔曲线
-            const dx = Math.abs(endX - startX) * 0.5;
-            const cp1x = startX + dx;
-            const cp1y = startY;
-            const cp2x = endX - dx;
-            const cp2y = endY;
-
-            tempLine.setAttribute('d',
-                `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
-            );
+            const lineCurve = ConnectionUtils.createCurvature(startX, startY, endX, endY, 0.5);
+            tempLine.setAttribute('d', lineCurve);
         };
 
         const finishLine = () => {

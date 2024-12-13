@@ -60,6 +60,11 @@ class GraphManager {
         });
     }
 
+
+
+    /**
+     * 创建容器
+     */
     static createContainer() {
         if (document.getElementById('container') !== null) {
             throw new Error('已经有了容器');
@@ -80,7 +85,10 @@ class GraphManager {
         // this.container.appendChild(this.precanvas);
         document.body.appendChild(this.container);
     }
-    // 添加缩放事件监听
+
+    /**
+     * 添加缩放事件监听
+     */
     static initListener() {
 
         document.addEventListener('wheel', this.zoom_enter.bind(this), { passive: false });
@@ -97,6 +105,9 @@ class GraphManager {
         });
     }
 
+    /**
+     * 鼠标移动事件
+     */
     static onMouseMove(e) {
         if (this.isMiddleMouseDown) {
             const dx = e.clientX - this.lastMouseX;
@@ -112,6 +123,10 @@ class GraphManager {
             this.lastMouseY = e.clientY;
         }
     }
+
+    /**
+     * 鼠标按下事件
+     */
     static onMouseDown(e) {
         if (e.button === 1) { // 中键
             this.isMiddleMouseDown = true;
@@ -171,6 +186,10 @@ class GraphManager {
 
         // }
     }
+
+    /**
+     * 刷新缩放
+     */
     static zoom_refresh(){
         // this.dispatch('zoom', this.zoom);
         this.canvas_x = (this.canvas_x / this.zoom_last_value) * this.zoom;
@@ -178,7 +197,10 @@ class GraphManager {
         this.zoom_last_value = this.zoom;
         this.container.style.transform = "translate("+this.canvas_x+"px, "+this.canvas_y+"px) scale("+this.zoom+")";
     }
-    // 在 JavaScript 中添加重置函数
+
+    /**
+     * 重置视图
+     */
     static resetView() {
         // 重置变量
         this.zoom = 1;
@@ -194,10 +216,10 @@ class GraphManager {
         drawAllConnections();
     }
 
-    // static updateTransform() {
-    //     this.precanvas.style.transform = `translate(${this.canvas_x}px, ${this.canvas_y}px) scale(${this.zoom})`;
-    // }
 
+    /**
+     * 菜单项
+     */
     static menuItems = [
         {
             text: '添加节点 ►',
@@ -227,6 +249,9 @@ class GraphManager {
         this.container.style.backgroundColor = color;
     }
 
+    /**
+     * 节点菜单
+     */
     static nodeMenuItems = [
         { text: '开始连接', action: (clickedNode) => clickedNode.connectTo(clickedNode) },
         { text: '删除节点', action: (clickedNode) => this.deleteNode(clickedNode) },
@@ -275,7 +300,10 @@ class GraphManager {
         });
     }
 
-    // 创建节点专用的右键菜单
+
+    /**
+     * 创建节点专用的右键菜单
+     */
     static createNodeContextMenu(x, y, clickedNode, items) {
         const menu = document.createElement('div');
         menu.className = 'context-menu';
@@ -450,17 +478,3 @@ class GraphManager {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-// // 修改全局右键菜单事件监听器
-// document.addEventListener('contextmenu', function (e) {
-
-// });
