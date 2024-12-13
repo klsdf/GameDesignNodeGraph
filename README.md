@@ -46,26 +46,26 @@
 图的方法都是静态方法
 
 
-| 方法名       | 说明                                       | 参数说明 | 使用示例                                                                                                 |
-| ------------ | ------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------- |
-| init         | 初始化并创建图                             |          | GraphManager.init();                                                                                     |
-| registerNode | 注册一个节点类型，可以在左边的节点列表显示 |          | varnode1 = newNode(100, 100, newNodeType('基础节点', '输入节点', 2, 3));NodeManager.registerNode(node1); |
-|              |                                            |          |                                                                                                          |
-|              |                                            |          |                                                                                                          |
-|              |                                            |          |                                                                                                          |
-|              |                                            |          |                                                                                                          |
+| 方法名             | 说明                                       | 参数说明 | 使用示例                                                     |
+| ------------------ | ------------------------------------------ | -------- | ------------------------------------------------------------ |
+| init               | 初始化并创建图                             |          | GraphManager.init();                                         |
+| registerNode(node) | 注册一个节点类型，可以在左边的节点列表显示 |          | varnode1 = newNode(100, 100, newNodeType('基础节点', '输入节点', 2, 3));NodeManager.registerNode(node1); |
+|                    |                                            |          |                                                              |
+|                    |                                            |          |                                                              |
+|                    |                                            |          |                                                              |
+|                    |                                            |          |                                                              |
 
 ## 节点
 
 
-| 方法名                                            | 说明                                             | 参数说明 | 使用示例                                                      |
-| ------------------------------------------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------- |
+| 方法名                                            | 说明                                             | 参数说明 | 使用示例                                                     |
+| ------------------------------------------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------ |
 | newNode                                           | 节点的构造函数                                   |          | newNode(100, 100, newNodeType('基础节点', '输入节点', 2, 3)); |
-|                                                   |                                                  |          |                                                               |
-| addInput                                          | 为节点增加一个输入端口                           |          |                                                               |
-| addOutput                                         | 为节点增加一个输出端口                           |          |                                                               |
-| getInputPortData(index)                           | 从第index输入端口中获取数据                      |          |                                                               |
-| SetOutpuPortData(index)                           | 给第index输出端口中设置数据                      |          | `node.setOutputPortData(0, "00000");`
-                        |
-|                                                   |                                                  |          |                                                               |
-| connectTo(fromPortIndex, targetNode, toPortIndex) | 连接节点的fromPortIndex到targetNode的toPortIndex |          |                                                               |
+|                                                   |                                                  |          |                                                              |
+| addInput                                          | 为节点增加一个输入端口                           |          |                                                              |
+| addOutput                                         | 为节点增加一个输出端口                           |          |                                                              |
+| getInputPortData(index)                           | 从第index输入端口中获取数据                      |          | ` const inputData = node.getInputPortData(0);`               |
+| SetOutpuPortData(index)                           | 给第index输出端口中设置数据                      |          | `node.setOutputPortData(0, "00000");`                        |
+| connectTo(fromPortIndex, targetNode, toPortIndex) | 连接节点的fromPortIndex到targetNode的toPortIndex |          | ` node.setOutputPortData(0, "00000");    node.setOutputPortData(1, '11111'); node.setOutputPortData(2, '另一个输出');` |
+|                                                   |                                                  |          |                                                              |
+ 

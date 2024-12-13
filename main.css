@@ -160,20 +160,20 @@ body {
 }
 
 .port {
-    width: 15px;
-    height: 15px;
-    background-color: #666;
+    width: 30px;
+    height: 30px;
+    background-color: #fcfffc;
     border-radius: 50%;
     position: absolute;
     cursor: pointer;
 }
 
 .input-port {
-    left: -7px;
+    left: -25px;
 }
 
 .output-port {
-    right: -7px;
+    right: -25px;
 }
 
 svg {
@@ -266,11 +266,17 @@ svg {
 }
 
 .node.processing {
-    background-color: rgba(255, 235, 59, 0.3);
+    background-color: rgba(0, 149, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
 .node.processed {
     background-color: rgba(76, 175, 80, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.node.error {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
 
 
