@@ -1,17 +1,18 @@
 /**
- * 节点管理器
+ * 节点管理器类
+ * 负责管理和注册所有节点类型，以及更新节点列表显示
  */
 class NodeManager {
-
     /**
      * 节点配置映射表
-     * @type { [parentType: string]: Array<{type: string, processFunction: Function}> }
+     * @type {Object.<string, Array<{type: string, processFunction: Function}>>}
      */
     static nodes = {};
 
     /**
-     * 注册节点
-     * @param {Node} node 
+     * 注册新的节点类型
+     * @param {Node} node - 要注册的节点实例
+     * @throws {Error} 如果节点类型已存在于同一父类型中
      */
     static registerNode(node) {
         if (!NodeManager.nodes[node.nodeConfig.parentType]) {
@@ -33,7 +34,8 @@ class NodeManager {
     }
 
     /**
-     * 更新首页的节点列表
+     * 更新首页的节点列表显示
+     * 创建可拖拽的节点类型列表
      */
     static updateNodeList() {
         const container = document.getElementById('node-list-container');
@@ -68,9 +70,18 @@ class NodeManager {
             });
         });
     }
-
 }
+
+/**
+ * 连接工具类
+ * 提供创建和管理节点间连接线的工具方法
+ */
 class ConnectionUtils {
+    /**
+     * 在指定容器中绘制连接线
+     * @param {HTMLElement} container - SVG容器元素
+     * @returns {SVGElement} 创建的连接线元素
+     */
     static drawConnection(container) {
         const connection = document.createElementNS('http://www.w3.org/2000/svg', "svg");
         const path = document.createElementNS('http://www.w3.org/2000/svg', "path");
@@ -82,6 +93,10 @@ class ConnectionUtils {
         return connection;
     }
 
+    /**
+     * 获取或创建SVG容器
+     * @returns {SVGElement} SVG容器元素
+     */
     static getSvgContainer() {
         let svg = document.getElementById('connection-svg');
         if (!svg) {
@@ -99,6 +114,10 @@ class ConnectionUtils {
         return svg;
     }
 
+    /**
+     * 创建临时连接线
+     * @returns {SVGPathElement} 临时连接线路径元素
+     */
     static createTempLine() {
         const tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         tempLine.setAttribute('stroke', '#fff');
@@ -108,6 +127,12 @@ class ConnectionUtils {
         return tempLine;
     }
 
+    /**
+     * 创建两个端口之间的连接
+     * @param {HTMLElement} fromPort - 起始端口
+     * @param {HTMLElement} toPort - 目标端口
+     * @returns {Object} 连接信息对象
+     */
     static createConnection(fromPort, toPort) {
         const svg = this.getSvgContainer();
         const connection = this.drawConnection(svg);
@@ -127,18 +152,41 @@ class ConnectionUtils {
         return connectionInfo;
     }
 
+    /**
+     * 更新连接线的路径
+     * @param {SVGElement} connection - 连接线元素
+     * @param {number} startX - 起始X坐标
+     * @param {number} startY - 起始Y坐标
+     * @param {number} endX - 结束X坐标
+     * @param {number} endY - 结束Y坐标
+     * @param {number} [curvature=0.5] - 曲线弯曲程度
+     */
     static updateConnection(connection, startX, startY, endX, endY, curvature = 0.5) {
         const path = connection.children[0];
         const lineCurve = this.createCurvature(startX, startY, endX, endY, curvature);
         path.setAttributeNS(null, 'd', lineCurve);
     }
 
+    /**
+     * 创建贝塞尔曲线路径
+     * @param {number} startX - 起始X坐标
+     * @param {number} startY - 起始Y坐标
+     * @param {number} endX - 结束X坐标
+     * @param {number} endY - 结束Y坐标
+     * @param {number} curvature - 曲线弯曲程度
+     * @returns {string} SVG路径字符串
+     */
     static createCurvature(startX, startY, endX, endY, curvature) {
         const hx1 = startX + Math.abs(endX - startX) * curvature;
         const hx2 = endX - Math.abs(endX - startX) * curvature;
         return `M ${startX} ${startY} C ${hx1} ${startY} ${hx2} ${endY} ${endX} ${endY}`;
     }
 
+    /**
+     * 设置连接线样式
+     * @param {SVGElement} connection - 连接线元素
+     * @param {Object} style - 样式对象
+     */
     static setStyle(connection, style) {
         const path = connection.children[0];
         Object.keys(style).forEach(key => {
@@ -149,26 +197,39 @@ class ConnectionUtils {
 
 
 /**
- * 节点
+ * 节点类
+ * 表示流程图中的一个节点，包含输入输出端口、数据处理和连接管理功能
  */
 class Node {
     /**
-     * @param {number} x 
-     * @param {number} y 
-     * @param {NodeConfig} nodeConfig 
+     * 创建新节点
+     * @param {number} x - 节点初始X坐标
+     * @param {number} y - 节点初始Y坐标
+     * @param {NodeConfig} nodeConfig - 节点配置对象
      */
-
     constructor(x, y, nodeConfig) {
+        /** @type {boolean} 是否正在移动 */
         this.ismoving = false;
-
+        
+        /** @type {number} 节点X坐标 */
         this.x = x;
+        
+        /** @type {number} 节点Y坐标 */
         this.y = y;
+        
+        /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
-        // this.backgroundColor = 'rgba(150, 150, 150, 0.27)';
+        
+        /** @type {Array} 节点组件列表 */
         this.components = [];//组件
+        
+        /** @type {Array} 节点连接列表 */
         this.connections = [];//连接的节点
-        // 修改：初始化空的端口数组
+        
+        /** @type {Array<HTMLElement>} 输入端口列表 */
         this.inputPorts = [];
+        
+        /** @type {Array<HTMLElement>} 输出端口列表 */
         this.outputPorts = [];
 
         this.documentElement = document.createElement('div');
@@ -217,7 +278,10 @@ class Node {
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
     }
 
-    // 添加运行按钮
+    /**
+     * 添加运行按钮到节点
+     * @private
+     */
     addRunButton() {
         const runButton = document.createElement('button');
         runButton.className = 'node-run-button';
@@ -229,7 +293,9 @@ class Node {
         this.documentElement.appendChild(runButton);
     }
 
-    // 设置为起始节点
+    /**
+     * 将节点设置为起始节点
+     */
     setAsStartNode() {
         this.isStartNode = true;
         this.documentElement.classList.add('start-node');
@@ -237,7 +303,10 @@ class Node {
         this.data = "这是起始数据";
     }
 
-    // 修改运行节点的方法
+    /**
+     * 运行节点的数据处理
+     * @async
+     */
     async run() {
         this.documentElement.classList.add('processing');
 
@@ -317,7 +386,10 @@ class Node {
         }
     }
 
-    // 处理数据的方法
+    /**
+     * 处理节点数据
+     * @async
+     */
     async processData() {
         if (this.isStartNode) {
             // 起始节点可以设置初始数据

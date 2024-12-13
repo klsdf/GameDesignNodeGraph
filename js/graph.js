@@ -434,8 +434,6 @@ class GraphManager {
         URL.revokeObjectURL(url);
     }
 
-
-
     // 添加读取节点的函数
     static loadNodes(file) {
         const reader = new FileReader();

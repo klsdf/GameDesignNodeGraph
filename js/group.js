@@ -1,42 +1,69 @@
+/**
+ * 组类
+ * 用于管理和组织节点的分组功能，支持拖拽、调整大小等交互
+ */
 class Group {
+    /**
+     * 创建新的组
+     * @param {number} x - 组的初始X坐标
+     * @param {number} y - 组的初始Y坐标
+     * @param {number} [width=200] - 组的初始宽度
+     * @param {number} [height=200] - 组的初始高度
+     */
     constructor(x, y, width = 200, height = 200) {
-        this.id = 'group_' + Date.now(); // 生成唯一的组ID
-        this.nodes = new Set(); // 存储组内的节点
-        this.element = this.createGroupElement(x, y, width, height); // 创建组的DOM元素
-        this.element.group = this; // 将组对象绑定到DOM元素
-        this.initializeEventListeners(); // 初始化事件监听器
+        /** @type {string} 组的唯一标识符 */
+        this.id = 'group_' + Date.now();
+        
+        /** @type {Set<Node>} 存储组内的节点集合 */
+        this.nodes = new Set();
+        
+        /** @type {HTMLElement} 组的DOM元素 */
+        this.element = this.createGroupElement(x, y, width, height);
+        
+        // 将组对象绑定到DOM元素
+        this.element.group = this;
+        
+        this.initializeEventListeners();
     }
 
-
-    /** 
-    创建组元素
-    */
+    /**
+     * 创建组的DOM元素
+     * @param {number} x - X坐标
+     * @param {number} y - Y坐标
+     * @param {number} width - 宽度
+     * @param {number} height - 高度
+     * @returns {HTMLElement} 创建的组元素
+     * @private
+     */
     createGroupElement(x, y, width, height) {
         const group = document.createElement('div');
-        group.className = 'group'; // 设置组的CSS类
-        group.id = this.id; // 设置组的ID
-        group.style.left = x + 'px'; // 设置组的初始位置
+        group.className = 'group';
+        group.id = this.id;
+        group.style.left = x + 'px';
         group.style.top = y + 'px';
-        group.style.width = width + 'px'; // 设置组的初始尺寸
+        group.style.width = width + 'px';
         group.style.height = height + 'px';
         
         const resizeHandle = document.createElement('div');
-        resizeHandle.className = 'group-resize-handle'; // 添加一个用于调整大小的手柄
+        resizeHandle.className = 'group-resize-handle';
         group.appendChild(resizeHandle);
 
         GraphManager.container.appendChild(group); // 将组添加到图形管理器的容器中
         return group;
     }
 
-    /** 
-    初始化事件监听器
-    */
+    /**
+     * 初始化组的事件监听器
+     * 包括拖拽和调整大小功能
+     * @private
+     */
     initializeEventListeners() {
         let isDragging = false; // 标记组是否正在被拖动
         let startX, startY; // 记录拖动开始时的鼠标位置
         let initialGroupLeft, initialGroupTop; // 记录拖动开始时组的位置
         let initialNodeOffsets = new Map(); // 存储节点的初始偏移量
 
+        // 组拖拽事件处理
         this.element.addEventListener('mousedown', (e) => {
             if (e.target === this.element) { // 确保点击的是组本身
                 isDragging = true;
@@ -54,10 +81,11 @@ class Group {
                     });
                 });
 
-                e.preventDefault(); // 阻止默认行为
+                e.preventDefault();
             }
         });
 
+        // 处理组的移动
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
 
@@ -80,12 +108,13 @@ class Group {
             });
         });
 
+        // 结束拖拽
         document.addEventListener('mouseup', () => {
             isDragging = false; // 停止拖动
             initialNodeOffsets.clear(); // 清除初始偏移量
         });
 
-        // 大小调整
+        // 组大小调整事件处理
         const resizeHandle = this.element.querySelector('.group-resize-handle');
         let isResizing = false; // 标记组是否正在被调整大小
 
@@ -110,11 +139,11 @@ class Group {
         });
     }
 
-    /** 
-    添加节点到组
-    */
+    /**
+     * 添加节点到组中
+     * @param {Node} node - 要添加的节点
+     */
     addNode(node) {
-        console.log(node);
         if (node && node.documentElement) {
             this.nodes.add(node); // 将节点添加到组中
             node.group = this; // 设置节点的组属性
@@ -124,17 +153,21 @@ class Group {
         }
     }
 
-    /** 
-    从组中移除节点
-    */
+    /**
+     * 从组中移除节点
+     * @param {Node} node - 要移除的节点
+     */
     removeNode(node) {
-        this.nodes.delete(node); // 从组中移除节点
-        node.group = null; // 清除节点的组属性
+        this.nodes.delete(node);
+        node.group = null;
     }
 
-    /** 
-    判断点是否在组内
-    */
+    /**
+     * 检查指定坐标是否在组内
+     * @param {number} x - 检查的X坐标
+     * @param {number} y - 检查的Y坐标
+     * @returns {boolean} 如果坐标在组内返回true，否则返回false
+     */
     containsPoint(x, y) {
         const rect = this.element.getBoundingClientRect();
         const scale = GraphManager.zoom;
@@ -156,8 +189,10 @@ class Group {
                relativeY >= groupTop && relativeY <= groupBottom; // 判断点是否在组内
     }
 
-    
-
+    /**
+     * 删除组
+     * 清除所有节点的组引用并移除DOM元素
+     */
     delete() {
         this.nodes.forEach(node => {
             node.group = null; // 清除每个节点的组属性
