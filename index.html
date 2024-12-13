@@ -39,32 +39,35 @@
 
     <script>
         GraphManager.init();
-        var node1 = new Node(100, 100, new NodeType(
+        var node1 = new Node(100, 100, new NodeConfig(
             '基础节点', 
             '游戏设计动机', 
-            2, 
-            3, 
-            (data) => {
-                if(data!=null){
-                    // 输入节点的处理逻辑
-                    return `${data}->我的节点1`;
-                }
-                return `我的节点1`;
+            (node) => {
+                // // 获取输入端口的数据
+                // const input1 = node.getInputPortData(0);
+                // const input2 = node.getInputPortData(1);
+                
+                // // 处理数据
+                // const result = `${input1 || ''} + ${input2 || ''} -> 处理结果`;
+                
+                // 设置输出端口的数据
+                node.setOutputPortData(0, "00000");
+                node.setOutputPortData(1, '11111');
+                node.setOutputPortData(2, '另一个输出');
             }
         ));
-        var node2 = new Node(500, 200, new NodeType(
+        var node2 = new Node(500, 200, new NodeConfig(
             '基础节点', 
             '游戏设计体验', 
-            3, 
-            3, 
-            (data) => {
-                if(data!=null){
-                    let result = `${data}->我的节点2`;
-                    document.getElementById("proposalContent").innerHTML = result; // 使用 innerHTML 以支持 HTML
-                    document.getElementById("proposal").style.display = "block";
-                    return result;
-                }
-                return `我的节点2`;
+            (node) => {
+                // 获取输入数据
+                const inputData = node.getInputPortData(0);
+                
+                // 处理并显示数据
+                const result = `${inputData} `;
+                document.getElementById("proposalContent").innerHTML = result;
+                document.getElementById("proposal").style.display = "block";
+                
             }
         ));
         NodeManager.registerNode(node1);
@@ -76,7 +79,7 @@
         node1.addOutput();
         node2.addInput();
 
-        node1.connectTo(2, node2, 0);
+        // node1.connectTo(2, node2, 0);
         // 点击空白处关闭菜单
         document.addEventListener('click', function (e) {
             const menu = document.querySelector('.context-menu');
