@@ -7,41 +7,17 @@
 </head>
 
 <body>
-    <div id="nav-bar">
-        <button id="node-list-button">📋 节点列表</button>
-        <button id="settings-button">⚙️ 设置</button>
-        <button id="proposal-button">📄 策划案</button>
-    </div>
-    <div id="node-list-menu" class="menu">
-        <h3>节点列表</h3>
-        <div id="node-list-container">
-            <!-- 节点列表项会动态生成在这里 -->
-        </div>
-    </div>
-    <div id="settings-menu" class="menu">
-        <h3>节点图设置</h3>
-        <button class="reset-button" onclick="GraphManager.resetView()">重置视图</button>
-        <button class="save-button" onclick="GraphManager.saveNodes()">保存</button>
-        <button class="load-button" onclick="document.getElementById('fileInput').click()">读取</button>
-        <input type="file" id="fileInput" style="display: none" accept=".json"
-            onchange="GraphManager.loadNodes(this.files[0])">
-    </div>
-    
-    <div id="proposal">
-        <button id="closeProposal">关闭</button>
-        <div id="proposalContent"></div>
-    </div>
     <script src="./js/node.js"></script>
-
     <script src="./js/graph.js"></script>
     <script src="./js/component.js"></script>
     <script src="js/group.js"></script>
+    <script src="js/save_manager.js"></script>
 
     <script>
         GraphManager.init();
         var node1 = new Node(100, 100, new NodeConfig(
-            '基础节点', 
-            '游戏设计动机', 
+            '基础节点',
+            '游戏设计动机',
             (node) => {
                 // 设置输出端口的数据
                 node.setOutputPortData(0, "0号节点");
@@ -50,13 +26,13 @@
             }
         ));
         var node2 = new Node(500, 200, new NodeConfig(
-            '基础节点', 
-            '游戏设计体验', 
+            '基础节点',
+            '游戏设计体验',
             (node) => {
-              
+
                 const inputDataArray = node.getInputPortData(0);
                 console.log("inputDataArray", inputDataArray);
-                
+
                 // // 处理并显示数据（例如，显示所有输入）
                 const result = inputDataArray.join('，');
                 document.getElementById("proposalContent").innerHTML = result;
@@ -71,89 +47,6 @@
         node1.addOutput();
         node1.addOutput();
         node2.addInput();
-
-        // node1.connectTo(2, node2, 0);
-        // 点击空白处关闭菜单
-        document.addEventListener('click', function (e) {
-            const menu = document.querySelector('.context-menu');
-            if (menu && !menu.contains(e.target)) {
-                menu.remove();
-            }
-        });
-        document.getElementById('closeProposal').addEventListener('click', function() {
-            document.getElementById('proposal').style.display = 'none';
-        });
-
-        document.getElementById('node-list-button').addEventListener('click', function() {
-            toggleMenu('node-list-menu', this);
-        });
-
-        document.getElementById('settings-button').addEventListener('click', function() {
-            toggleMenu('settings-menu', this);
-        });
-
-        document.getElementById('proposal-button').addEventListener('click', function() {
-            toggleProposal(this);
-        });
-
-        function toggleMenu(menuId, button) {
-            const menu = document.getElementById(menuId);
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-                button.classList.remove('active');
-            } else {
-                menu.style.display = 'block';
-                button.classList.add('active');
-            }
-        }
-
-        function toggleProposal(button) {
-            const proposal = document.getElementById('proposal');
-            if (proposal.style.display === 'block') {
-                proposal.style.display = 'none';
-                button.classList.remove('active');
-            } else {
-                proposal.style.display = 'block';
-                button.classList.add('active');
-            }
-        }
-
-        // 使导航栏可拖动
-        function makeDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            element.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
-                if (e.target !== element) return;
-
-                e = e || window.event;
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
-
-            function elementDrag(e) {
-                e = e || window.event;
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
-        }
-
-        makeDraggable(document.getElementById('nav-bar'));
-        makeDraggable(document.getElementById('node-list-menu'));
-        makeDraggable(document.getElementById('settings-menu'));
     </script>
 
 
