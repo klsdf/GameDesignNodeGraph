@@ -79,10 +79,10 @@ class NodeManager {
 class ConnectionUtils {
     /**
      * 在指定容器中绘制连接线
-     * @param {HTMLElement} container - SVG容器元素
      * @returns {SVGElement} 创建的连接线元素
      */
-    static drawConnection(container) {
+    static drawConnection() {
+        const container = this.getSvgContainer();
         const connection = document.createElementNS('http://www.w3.org/2000/svg', "svg");
         const path = document.createElementNS('http://www.w3.org/2000/svg', "path");
         path.classList.add("main-path");
@@ -134,8 +134,8 @@ class ConnectionUtils {
      * @returns {Object} 连接信息对象
      */
     static createConnection(fromPort, toPort) {
-        const svg = this.getSvgContainer();
-        const connection = this.drawConnection(svg);
+        // const svg = this.getSvgContainer();
+        const connection = this.drawConnection();
         
         const connectionInfo = {
             from: fromPort,
@@ -220,8 +220,8 @@ class Node {
         /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
         
-        /** @type {Array} 节点组件列表 */
-        this.components = [];//组件
+        // /** @type {Array} 节点组件列表 */
+        // this.components = [];//组件
         
         /** @type {Array} 节点连接列表 */
         this.connections = [];//连接的节点
@@ -239,14 +239,15 @@ class Node {
         // this.documentElement.contentEditable = true;
         this.documentElement.style.left = (x - 50) + 'px';
         this.documentElement.style.top = (y - 25) + 'px';
-        this.documentElement.style.width = '200px';
-        this.documentElement.style.height = '300px';
+        this.documentElement.style.width = nodeConfig.width;
+        this.documentElement.style.height = nodeConfig.height;
         // this.documentElement.style.backgroundColor = this.backgroundColor;
         // this.documentElement.textContent = this.nodeConfig.type;
+        this.updateComponent();
 
-        this.addComponent(new TitleComponent(this.nodeConfig.type));
-        this.addComponent(new TextAreaComponent());
-        this.addComponent(new VideoComponent('./第17课.mp4'));
+        // this.addComponent(new TitleComponent(this.nodeConfig.type));
+        // this.addComponent(new TextAreaComponent());
+        // this.addComponent(new VideoComponent('./第17课.mp4'));
 
         this.initEvents();
         
@@ -486,17 +487,34 @@ class Node {
             port.style.top = `${outputSpacing * (index + 1)}px`;
         });
     }
-    addComponent(component) {
-        this.components.push(component);
-        this.documentElement.appendChild(component.element);
+
+
+
+    /**
+     * 从nodeconfig中用components更新组件
+     */
+    updateComponent() {
+        this.nodeConfig.components.forEach(component => {
+            this.documentElement.appendChild(component.element);
+            
+        });
     }
-    removeComponent(component) {
-        const index = this.components.indexOf(component);
-        if (index > -1) {
-            this.components.splice(index, 1);
-            component.element.remove();
-        }
-    }
+    // /**
+    //  * 从节点中移除组件
+    //  * @param {Component} component - 要移除的组件
+    //  */
+    // removeComponent(component) {
+    //     // 从DOM中移除组件元素
+    //     if (component.element && component.element.parentNode === this.documentElement) {
+    //         this.documentElement.removeChild(component.element);
+    //     }
+        
+    //     // 从组件列表中移除
+    //     const index = this.nodeConfig.components.indexOf(component);
+    //     if (index > -1) {
+    //         this.nodeConfig.components.splice(index, 1);
+    //     }
+    // }
 
     setContent(content) {
         this.documentElement.innerHTML = content;
@@ -875,22 +893,22 @@ class Node {
         const toPort = targetNode.inputPorts[toPortIndex];
 
         // 创建或获取 SVG 容器
-        let svg = document.getElementById('connection-svg');
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.id = 'connection-svg';
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '1';
-            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
-        }
+        // let svg = document.getElementById('connection-svg');
+        // if (!svg) {
+        //     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        //     svg.id = 'connection-svg';
+        //     svg.style.position = 'absolute';
+        //     svg.style.top = '0';
+        //     svg.style.left = '0';
+        //     svg.style.width = '100%';
+        //     svg.style.height = '100%';
+        //     svg.style.pointerEvents = 'none';
+        //     svg.style.zIndex = '1';
+        //     GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
+        // }
 
         // 使用 ConnectionUtils 创建连线
-        const connection = ConnectionUtils.drawConnection(svg);
+        const connection = ConnectionUtils.drawConnection();
 
         // 存储连接信息
         const connectionInfo = {
@@ -1009,10 +1027,41 @@ class Node {
 
 // 将 NodeType 类重命名为 NodeConfig
 class NodeConfig {
-    constructor(parentType, type, processFunction) {
+    constructor(parentType, type, processFunction,width = "300px",height = '400px') {
         this.parentType = parentType;
         this.type = type;
         this.processFunction = processFunction || this.defaultProcess;
+        this.width = width;
+        this.height = height
+        //默认的变量
+        this.components = []
+    }
+
+    
+
+    /**
+     * 添加组件到节点配置中
+     * @param {Component} component - 要添加的组件
+     */
+    addComponent(component)
+    {
+        this.components.push(component);
+    }
+
+
+    setType(parentType,type)
+    {
+        this.parentType = parentType;
+        this.type = type;
+    }
+    setSize(width,height)
+    {
+        this.width = width;
+        this.height = height;
+    }
+    setProcessFunction(processFunction)
+    {
+        this.processFunction = processFunction;
     }
 
     // 修改默认处理函数以持新的API
