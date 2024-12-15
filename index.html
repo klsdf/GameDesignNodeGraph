@@ -15,38 +15,43 @@
 
     <script>
         GraphManager.init();
-        var node1 = new Node(100, 100, new NodeConfig(
-            '基础节点',
+
+        var nodeConfig = new NodeConfig('游戏结构',
             '游戏设计动机',
             (node) => {
                 // 设置输出端口的数据
                 node.setOutputPortData(0, "0号节点");
                 node.setOutputPortData(1, '1号节点');
                 node.setOutputPortData(2, '2号节点');
-            }
-        ));
-        var node2 = new Node(500, 200, new NodeConfig(
-            '基础节点',
+            });
+        nodeConfig.addComponent(new TitleComponent(nodeConfig.type));
+        nodeConfig.addComponent(new TextAreaComponent());
+        nodeConfig.addComponent(new VideoComponent('./第17课.mp4'));
+        nodeConfig.addInput();
+        nodeConfig.addInput();
+        nodeConfig.addOutput();
+        nodeConfig.addOutput();
+        nodeConfig.addOutput();
+        var node1 = new Node(500, 100, nodeConfig);
+
+        var nodeConfig2 = new NodeConfig('游戏结构',
             '游戏设计体验',
             (node) => {
-
                 const inputDataArray = node.getInputPortData(0);
                 console.log("inputDataArray", inputDataArray);
 
-                // // 处理并显示数据（例如，显示所有输入）
+                // 处理并显示数据（例如，显示所有输入）
                 const result = inputDataArray.join('，');
                 document.getElementById("proposalContent").innerHTML = result;
                 document.getElementById("proposal").style.display = "block";
-            }
-        ));
+            });
+        nodeConfig2.addComponent(new TitleComponent(nodeConfig2.type));
+        nodeConfig2.addComponent(new TextAreaComponent());
+        nodeConfig2.addInput();
+        var node2 = new Node(1000, 200, nodeConfig2);
+
         NodeManager.registerNode(node1);
-        // NodeManager.registerNode(node2);
-        node1.addInput();
-        node1.addInput();
-        node1.addOutput();
-        node1.addOutput();
-        node1.addOutput();
-        node2.addInput();
+        NodeManager.registerNode(node2);
     </script>
 
 

@@ -7,7 +7,7 @@ class NodeManager {
      * 节点配置映射表
      * @type {Object.<string, Array<{type: string, processFunction: Function}>>}
      */
-    static nodes = {};
+    static registeredNodes = {};
 
     /**
      * 注册新的节点类型
@@ -15,18 +15,18 @@ class NodeManager {
      * @throws {Error} 如果节点类型已存在于同一父类型中
      */
     static registerNode(node) {
-        if (!NodeManager.nodes[node.nodeConfig.parentType]) {
-            NodeManager.nodes[node.nodeConfig.parentType] = [];
+        if (!NodeManager.registeredNodes[node.nodeConfig.parentType]) {
+            NodeManager.registeredNodes[node.nodeConfig.parentType] = [];
         }
         // 检查是否已存在相同类型的节点
-        const existingNode = NodeManager.nodes[node.nodeConfig.parentType].find(
+        const existingNode = NodeManager.registeredNodes[node.nodeConfig.parentType].find(
             node => node.type === node.nodeConfig.type
         );
         console.log("existingNode", existingNode);
         if (existingNode) {
             throw new Error(`节点类型 '${node.nodeConfig.type}' 已存在于 '${node.nodeConfig.parentType}' 分类中`);
         }
-        NodeManager.nodes[node.nodeConfig.parentType].push({ 
+        NodeManager.registeredNodes[node.nodeConfig.parentType].push({ 
             type: node.nodeConfig.type, 
             processFunction: node.nodeConfig.processFunction 
         });
@@ -42,7 +42,7 @@ class NodeManager {
         container.innerHTML = ''; // 清空现有列表
 
         // 遍历所有注册的节点类型
-        Object.entries(NodeManager.nodes).forEach(([parentType, nodeTypes]) => {
+        Object.entries(NodeManager.registeredNodes).forEach(([parentType, nodeTypes]) => {
             // 创建父类型标题
             const parentTitle = document.createElement('div');
             parentTitle.className = 'node-list-category';
@@ -244,13 +244,10 @@ class Node {
         // this.documentElement.style.backgroundColor = this.backgroundColor;
         // this.documentElement.textContent = this.nodeConfig.type;
 
-        this.addComponent(new TitleComponent(this.nodeConfig.type));
-        this.addComponent(new TextAreaComponent());
-        this.addComponent(new VideoComponent('./第17课.mp4'));
+        // Initialize components from NodeConfig
+        this.nodeConfig.components.forEach(component => this.addComponent(component));
 
         this.initEvents();
-        
-        // 移除原有的 createPorts 调用
         
         GraphManager.container.appendChild(this.documentElement);
 
@@ -276,6 +273,15 @@ class Node {
         // 修改：初始化输入和输出端口数据数组
         this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
+        
+        // 创建输入和输出端口
+        for (let i = 0; i < this.nodeConfig.inputCount; i++) {
+            this.addInput();
+        }
+        for (let i = 0; i < this.nodeConfig.outputCount; i++) {
+            this.addOutput();
+        }
+
     }
 
     /**
@@ -928,11 +934,14 @@ class Node {
         ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
     }
 
-    // 修改：添加输入端口方法
+    /**
+     * 添加输入端口
+     */
     addInput() {
         const inputPort = document.createElement('div');
         inputPort.className = 'port input-port';
         this.inputPorts.push(inputPort);
+        console.log("inputPorts", this.inputPortsData);
         this.inputPortsData.push([]); // 初始化为空数组
         this.documentElement.appendChild(inputPort);
         this.updatePortPositions();
@@ -1009,10 +1018,13 @@ class Node {
 
 // 将 NodeType 类重命名为 NodeConfig
 class NodeConfig {
-    constructor(parentType, type, processFunction) {
+    constructor(parentType = "默认类型", type = "默认", processFunction = null, components = []) {
         this.parentType = parentType;
         this.type = type;
         this.processFunction = processFunction || this.defaultProcess;
+        this.components = components; // 添加组件到 NodeConfig
+        this.inputCount = 0; // 初始化输入端口数量
+        this.outputCount = 0; // 初始化输出端口数量
     }
 
     // 修改默认处理函数以持新的API
@@ -1021,6 +1033,59 @@ class NodeConfig {
         const inputData = node.getInputPortData(0);
         // 设置第一个输出端口的数据
         node.setOutputPortData(0, `${inputData} -> 经过默认处理`);
+    }
+
+    /**
+     * 设置节点类型
+     * @param {string} parentType - 父节点类型
+     * @param {string} type - 节点类型
+     */
+    setType(parentType,type) {
+        this.parentType = parentType;
+        this.type = type;
+    }
+
+    /**
+     * 设置节点处理函数
+     * @param {function} processFunction - 节点处理函数
+     */
+    setProcessFunction(processFunction) {
+        this.processFunction = processFunction;
+    }
+
+    
+
+    /**
+     * 添加组件到 NodeConfig
+     * @param {Component} component - 要添加的组件
+     */
+    addComponent(component) {
+        this.components.push(component);
+    }
+
+    /**
+     * 从 NodeConfig 中移除组件
+     * @param {Component} component - 要移除的组件
+     */
+    removeComponent(component) {
+        const index = this.components.indexOf(component);
+        if (index > -1) {
+            this.components.splice(index, 1);
+        }
+    }
+
+    /**
+     * 增加输入端口数量
+     */
+    addInput() {
+        this.inputCount++;
+    }
+
+    /**
+     * 增加输出端口数量
+     */
+    addOutput() {
+        this.outputCount++;
     }
 }
 
