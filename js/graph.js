@@ -96,12 +96,20 @@ class GraphManager {
         document.addEventListener('mousedown', this.onMouseDown.bind(this));
         document.addEventListener('mousemove', this.onMouseMove.bind(this));
         document.addEventListener('mouseup', this.onMouseUp.bind(this));
-        // 添加点击事件监听器来关闭右键菜单
+        // 修改点击事件监听器
         document.addEventListener('click', (e) => {
-            const contextMenu = document.querySelector('.context-menu');
-            if (contextMenu && !contextMenu.contains(e.target)) {
-                contextMenu.remove();
+            // 如果点击的是导航菜单或其子元素，不做任何处理
+            if (e.target.closest('#nav-bar') || e.target.closest('.menu')) {
+                return;
             }
+
+            // 只关闭右键菜单
+            const contextMenus = document.querySelectorAll('.context-menu');
+            contextMenus.forEach(menu => {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                }
+            });
         });
 
         // 阻止浏览器默认的鼠标中键点击行为
@@ -319,7 +327,7 @@ class GraphManager {
      */
     static createNodeContextMenu(x, y, clickedNode, items) {
         const menu = document.createElement('div');
-        menu.className = 'context-menu';
+        menu.className = 'right-click-menu context-menu';
         menu.style.left = x + 'px';
         menu.style.top = y + 'px';
 
@@ -353,7 +361,7 @@ class GraphManager {
         }
 
         const menu = document.createElement('div');
-        menu.className = 'context-menu';
+        menu.className = 'right-click-menu context-menu';
         menu.style.left = x + 'px';
         menu.style.top = y + 'px';
 
@@ -401,7 +409,7 @@ class GraphManager {
         }
 
         const submenu = document.createElement('div');
-        submenu.className = 'context-menu context-submenu';
+        submenu.className = 'right-click-menu context-menu context-submenu';
 
         // 阻止子菜单上的点击事件冒泡
         submenu.addEventListener('click', (e) => {
@@ -665,17 +673,17 @@ class GraphManager {
             });
         }
 
-        // 点击空白处关闭菜单
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.menu') && !e.target.closest('#nav-bar')) {
-                document.querySelectorAll('.menu').forEach(menu => {
-                    menu.style.display = 'none';
-                });
-                document.querySelectorAll('#nav-bar button').forEach(button => {
-                    button.classList.remove('active');
-                });
-            }
-        });
+        // // 点击空白处关闭菜单
+        // document.addEventListener('click', (e) => {
+        //     if (!e.target.closest('.menu') && !e.target.closest('#nav-bar')) {
+        //         document.querySelectorAll('.menu').forEach(menu => {
+        //             menu.style.display = 'none';
+        //         });
+        //         document.querySelectorAll('#nav-bar button').forEach(button => {
+        //             button.classList.remove('active');
+        //         });
+        //     }
+        // });
     }
 
     /**
