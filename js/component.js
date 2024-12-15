@@ -8,6 +8,7 @@ class Component {
             throw new Error('Component 是抽象类，不能直接实例化');
         }
         this.element = document.createElement(elementType);
+        this.element.classList.add('component');
 
         // 创建标题元素
         const titleElement = document.createElement('div');
@@ -16,8 +17,6 @@ class Component {
         titleElement.style.textAlign = 'left';
         titleElement.style.width = '100%';
         titleElement.style.marginBottom = '5px';
-
-        // 将标题元素添加到组件的 DOM 中
         this.element.prepend(titleElement);
     }
 }

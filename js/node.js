@@ -90,6 +90,14 @@ class ConnectionUtils {
         connection.classList.add("connection");
         connection.appendChild(path);
         container.appendChild(connection);
+
+        this.setStyle(connection, {
+            stroke: '#fff',
+            strokeWidth: '5',
+            strokeDasharray: '10, 10'
+        });
+
+
         return connection;
     }
 
@@ -114,18 +122,7 @@ class ConnectionUtils {
         return svg;
     }
 
-    /**
-     * 创建临时连接线
-     * @returns {SVGPathElement} 临时连接线路径元素
-     */
-    static createTempLine() {
-        const tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        tempLine.setAttribute('stroke', '#fff');
-        tempLine.setAttribute('stroke-width', '5');
-        tempLine.setAttribute('stroke-dasharray', '10, 10');
-        tempLine.setAttribute('fill', 'none');
-        return tempLine;
-    }
+
 
     /**
      * 创建两个端口之间的连接
@@ -134,7 +131,6 @@ class ConnectionUtils {
      * @returns {Object} 连接信息对象
      */
     static createConnection(fromPort, toPort) {
-        // const svg = this.getSvgContainer();
         const connection = this.drawConnection();
         
         const connectionInfo = {
@@ -143,11 +139,6 @@ class ConnectionUtils {
             path: connection
         };
 
-        this.setStyle(connection, {
-            stroke: '#fff',
-            strokeWidth: '5',
-            strokeDasharray: '10, 10'
-        });
 
         return connectionInfo;
     }
@@ -220,8 +211,6 @@ class Node {
         /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
         
-        // /** @type {Array} 节点组件列表 */
-        // this.components = [];//组件
         
         /** @type {Array} 节点连接列表 */
         this.connections = [];//连接的节点
@@ -241,18 +230,11 @@ class Node {
         this.documentElement.style.top = (y - 25) + 'px';
         this.documentElement.style.width = nodeConfig.width;
         this.documentElement.style.height = nodeConfig.height;
-        // this.documentElement.style.backgroundColor = this.backgroundColor;
-        // this.documentElement.textContent = this.nodeConfig.type;
-        this.updateComponent();
 
-        // this.addComponent(new TitleComponent(this.nodeConfig.type));
-        // this.addComponent(new TextAreaComponent());
-        // this.addComponent(new VideoComponent('./第17课.mp4'));
 
+     
         this.initEvents();
-        
-        // 移除原有的 createPorts 调用
-        
+
         GraphManager.container.appendChild(this.documentElement);
 
         const resizeHandle = document.createElement('div');
@@ -264,11 +246,10 @@ class Node {
 
         // 添加数据相关的属性
         this.data = null;  // 节点的数据
-        this.isStartNode = false; // 是否为起始节点
         
         // 添加运行按钮
         this.addRunButton();
-
+        this.updateComponent();
         //  保存节点
         this.documentElement.node = this;
 
@@ -295,16 +276,6 @@ class Node {
     }
 
     /**
-     * 将节点设置为起始节点
-     */
-    setAsStartNode() {
-        this.isStartNode = true;
-        this.documentElement.classList.add('start-node');
-        // 设置初始数据
-        this.data = "这是起始数据";
-    }
-
-    /**
      * 运行节点的数据处理
      * @async
      */
@@ -314,12 +285,6 @@ class Node {
         try {
             // 在处理数据前清空当前节点的输入和输出数据
             this.clearData();
-
-            if (this.isStartNode) {
-                await this.processData();
-            } else {
-                // 对于非起始节点，先收集所有上游节点的数据
-                const inputPortsMap = new Map(); // 用于存储每个输入端口的连接
 
                 // 获取所有输入连接，并按端口索引分组
                 const incomingConnections = this.getIncomingConnections();
@@ -349,13 +314,6 @@ class Node {
 
                 // 处理当前节点的数据
                 await this.processData();
-            }
-
-            // 输出处理后的状态
-            console.log(`Node ${this.nodeConfig.type} processed:`, {
-                inputs: this.inputPortsData,
-                outputs: this.outputPortsData
-            });
 
             // 运行下游节点
             const outgoingConnections = this.getOutgoingConnections();
@@ -392,12 +350,6 @@ class Node {
      * @async
      */
     async processData() {
-        if (this.isStartNode) {
-            // 起始节点可以设置初始数据
-            this.setOutputPortData(0, this.data);
-            return;
-        }
-
         // 使用节点配置定义的处理函数
         await this.nodeConfig.processFunction(this);
     }
@@ -439,40 +391,6 @@ class Node {
         });
     }
 
-    /*^
-    创建端口
-    */
-    createPorts() {
-        // 创建输入端口
-        for (let i = 0; i < this.nodeConfig.input; i++) {
-            const inputPort = document.createElement('div');
-            inputPort.className = 'port input-port';
-            // 计算端口垂直位置
-            const spacing = this.documentElement.offsetHeight / (this.nodeConfig.input + 1);
-            inputPort.style.top = `${spacing * (i + 1)}px`;
-
-            this.inputPorts.push(inputPort);
-            this.documentElement.appendChild(inputPort);
-        }
-
-        // 创建输出端口
-        for (let i = 0; i < this.nodeConfig.output; i++) {
-            const outputPort = document.createElement('div');
-            outputPort.className = 'port output-port';
-            // 计算端口垂直位置
-            const spacing = this.documentElement.offsetHeight / (this.nodeConfig.output + 1);
-            outputPort.style.top = `${spacing * (i + 1)}px`;
-
-            this.outputPorts.push(outputPort);
-            this.documentElement.appendChild(outputPort);
-        }
-
-        // 在节点大小改变时更新端口位置
-        const resizeObserver = new ResizeObserver(() => {
-            this.updatePortPositions();
-        });
-        resizeObserver.observe(this.documentElement);
-    }
 
     updatePortPositions() {
         // 更新输入端口位置
@@ -494,30 +412,15 @@ class Node {
      * 从nodeconfig中用components更新组件
      */
     updateComponent() {
+        // 清除所有component类的元素
+        const components = this.documentElement.getElementsByClassName('component');
+        while (components.length > 0) {
+            components[0].remove();
+        }
+        // 添加新的组件
         this.nodeConfig.components.forEach(component => {
             this.documentElement.appendChild(component.element);
-            
         });
-    }
-    // /**
-    //  * 从节点中移除组件
-    //  * @param {Component} component - 要移除的组件
-    //  */
-    // removeComponent(component) {
-    //     // 从DOM中移除组件元素
-    //     if (component.element && component.element.parentNode === this.documentElement) {
-    //         this.documentElement.removeChild(component.element);
-    //     }
-        
-    //     // 从组件列表中移除
-    //     const index = this.nodeConfig.components.indexOf(component);
-    //     if (index > -1) {
-    //         this.nodeConfig.components.splice(index, 1);
-    //     }
-    // }
-
-    setContent(content) {
-        this.documentElement.innerHTML = content;
     }
     // 清除所有节点
     static clearAllNodes() {
@@ -607,7 +510,6 @@ class Node {
 
     endNodeDrag() {
         this.ismoving = false;
-        console.log("结束" + this.ismoving);
     }
 
 
@@ -838,12 +740,12 @@ class Node {
 
     
     /**
-     * 开始绘制连接
+     * 开始绘制鼠标拖拽形成的临时连接
      */
     startDrawingConnection(e) {
-        const tempLine = ConnectionUtils.createTempLine();
+        const connection = ConnectionUtils.drawConnection();
         const svg = ConnectionUtils.getSvgContainer();
-        svg.appendChild(tempLine);
+        svg.appendChild(connection);
 
         const scale = GraphManager.zoom;
         const startX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
@@ -853,11 +755,11 @@ class Node {
             const endX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
             const endY = (e.clientY - GraphManager.container.getBoundingClientRect().top) / scale;
             const lineCurve = ConnectionUtils.createCurvature(startX, startY, endX, endY, 0.5);
-            tempLine.setAttribute('d', lineCurve);
+            connection.children[0].setAttribute('d', lineCurve);
         };
 
         const finishLine = () => {
-            tempLine.remove();
+            connection.remove();
             document.removeEventListener('mousemove', updateLine);
             document.removeEventListener('mouseup', finishLine);
         };
@@ -866,19 +768,6 @@ class Node {
         document.addEventListener('mouseup', finishLine);
     }
 
-    // updateContainerSize() {
-    //     const container = GraphManager.container;
-    //     const nodeRect = this.documentElement.getBoundingClientRect();
-    //     const containerRect = container.getBoundingClientRect();
-
-    //     // 检查节点是否超出容器边界
-    //     if (nodeRect.right > containerRect.right) {
-    //         container.style.width = `${nodeRect.right - containerRect.left}px`;
-    //     }
-    //     if (nodeRect.bottom > containerRect.bottom) {
-    //         container.style.height = `${nodeRect.bottom - containerRect.top}px`;
-    //     }
-    // }
 
     connectTo(fromPortIndex, targetNode, toPortIndex) {
         // 检查索引是否有效
@@ -891,21 +780,6 @@ class Node {
 
         const fromPort = this.outputPorts[fromPortIndex];
         const toPort = targetNode.inputPorts[toPortIndex];
-
-        // 创建或获取 SVG 容器
-        // let svg = document.getElementById('connection-svg');
-        // if (!svg) {
-        //     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        //     svg.id = 'connection-svg';
-        //     svg.style.position = 'absolute';
-        //     svg.style.top = '0';
-        //     svg.style.left = '0';
-        //     svg.style.width = '100%';
-        //     svg.style.height = '100%';
-        //     svg.style.pointerEvents = 'none';
-        //     svg.style.zIndex = '1';
-        //     GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
-        // }
 
         // 使用 ConnectionUtils 创建连线
         const connection = ConnectionUtils.drawConnection();
@@ -923,13 +797,13 @@ class Node {
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
 
-        // 设置样式
-        ConnectionUtils.setStyle(connection, {
-            stroke: '#fff',
-            strokeWidth: '5',
-            strokeDasharray: '10, 10',
+        // // 设置样式
+        // ConnectionUtils.setStyle(connection, {
+        //     stroke: '#fff',
+        //     strokeWidth: '5',
+        //     strokeDasharray: '10, 10',
 
-        });
+        // });
     }
 
     updatePortConnection(connection) {
@@ -1033,12 +907,13 @@ class NodeConfig {
         this.processFunction = processFunction || this.defaultProcess;
         this.width = width;
         this.height = height
+
+
         //默认的变量
         this.components = []
     }
 
     
-
     /**
      * 添加组件到节点配置中
      * @param {Component} component - 要添加的组件

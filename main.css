@@ -182,6 +182,7 @@ svg {
     z-index: 10;
 }
 
+/* 默认样式*/
 .main-path {
     stroke: #007bff;
     stroke-width: 7;
