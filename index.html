@@ -15,51 +15,46 @@
 
     <script>
         GraphManager.init();
-        let config1 = new NodeConfig(
-            '基础节点',
-            '游戏设计动机',
-            (node) => {
-                // 设置输出端口的数据
-                node.setOutputPortData(0, "0号节点");
-                node.setOutputPortData(1, '1号节点');
-                node.setOutputPortData(2, '2号节点');
-            },
-            '500px',
-            '500px'
-        )
+        let config1 = new NodeConfig()
+        config1.setType("基础节点", "游戏设计动机");
+        config1.setSize("500px", "500px");
+        config1.setProcessFunction((node) => {
+            // 设置输出端口的数据
+            node.setOutputPortData(0, "0号节点");
+            node.setOutputPortData(1, '1号节点');
+            node.setOutputPortData(2, '2号节点');
+        });
         config1.addComponent(new TitleComponent("标题"));
         config1.addComponent(new TextAreaComponent());
         config1.addComponent(new VideoComponent('./第17课.mp4'));
+        config1.addOutputPort("游戏设计动机");
+        config1.addOutputPort("2");
+        config1.addOutputPort("3");
         var node1 = new Node(100, 100, config1);
 
 
-        let config2 = new NodeConfig(
-            '基础节点',
-            '游戏设计体验',
-            (node) => {
-
-                const inputDataArray = node.getInputPortData(0);
+        let config2 = new NodeConfig();
+        config2.setType("基础节点","游戏设计体验");
+        config2.setSize("500px","500px");
+        config2.setProcessFunction((node)=>{
+            const inputDataArray = node.getInputPortData(0);
                 console.log("inputDataArray", inputDataArray);
 
                 // // 处理并显示数据（例如，显示所有输入）
                 const result = inputDataArray.join('，');
                 document.getElementById("proposalContent").innerHTML = result;
                 document.getElementById("proposal").style.display = "block";
-            }
-        )
+        });
         config2.addComponent(new TitleComponent("标题"));
         config2.addComponent(new TitleComponent("标题2"));
-
-
+        config2.addComponent(new TitleComponent("标题3"));
+        config2.addInputPort("游戏设计动机");
 
         var node2 = new Node(1000, 200, config2);
         NodeManager.registerNode(node1);
-        node1.addOutput("游戏设计动机");
-        node1.addOutput("2");
-        node1.addOutput("3");
-        node2.addInput("游戏设计动机");
+
+
         node1.connectTo(0, node2, 0);
-        node1.connectTo(1, node2, 0);
 
     </script>
 

@@ -253,6 +253,16 @@ class Node {
         // 修改：初始化输入和输出端口数据数组
         this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
+
+        // 实例化输入端口
+        this.nodeConfig.inputPorts.forEach(portConfig => {
+            this.addInput(portConfig.type);
+        });
+
+        // 实例化输出端口
+        this.nodeConfig.outputPorts.forEach(portConfig => {
+            this.addOutput(portConfig.type);
+        });
     }
 
     addResizeHandle() {
@@ -921,7 +931,7 @@ class Node {
 
 // 将 NodeType 类重命名为 NodeConfig
 class NodeConfig {
-    constructor(parentType, type, processFunction,width = "300px",height = '400px') {
+    constructor(parentType="默认", type="默认", processFunction=()=>{console.log("默认处理函数")},width = "300px",height = '400px') {
         this.parentType = parentType;
         this.type = type;
         this.processFunction = processFunction || this.defaultProcess;
@@ -931,6 +941,10 @@ class NodeConfig {
 
         //默认的变量
         this.components = []
+
+        // 添加输入和输出端口信息
+        this.inputPorts = [];
+        this.outputPorts = [];
     }
 
     
@@ -965,6 +979,16 @@ class NodeConfig {
         const inputData = node.getInputPortData(0);
         // 设置第一个输出端口的数据
         node.setOutputPortData(0, `${inputData} -> 经过默认处理`);
+    }
+
+    // 添加输入端口信息
+    addInputPort(type = '无') {
+        this.inputPorts.push({ type });
+    }
+
+    // 添加输出端口信息
+    addOutputPort(type = '无') {
+        this.outputPorts.push({ type });
     }
 }
 
