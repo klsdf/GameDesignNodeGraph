@@ -16,11 +16,10 @@ body {
 }
 
 .node {
-    /* 移除固定宽度和高度 */
-    /* width: 200px; */
-    /* height: 300px; */
-    min-width: 100px; /* 保持最小宽度 */
-    min-height: 50px; /* 保持最小高度 */
+    /* width: 100px; */
+    /* height: 50px; */
+    min-width: 100px;
+    min-height: 50px;
     background-color: rgba(128, 128, 128, 0.555);
     border: 2px solid #1b1b1b;
     border-radius: 5px;
@@ -28,17 +27,13 @@ body {
     cursor: move;
     display: flex;
     flex-direction: column;
-    align-items: stretch; /* 让子元素撑满父元素 */
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
     color: rgb(255, 255, 255);
     border-radius: 20px;
     font-size: 10px;
     backdrop-filter: blur(10px);
-    box-shadow: -1px 2px 18px 13px rgba(192, 192, 192, 0.397);
-    height: auto;
-    transition: background-color 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    box-shadow: -1px 2px 18px 13px rgba(192, 192, 192, 0.397)
 }
 
 .node.active {
@@ -47,6 +42,17 @@ body {
     background-color: rgba(104, 255, 74, 0.322);
 }
 
+.node * {
+    margin: 10px;
+}
+
+.node {
+    /* ... 保持现有样式 ... */
+    transition: background-color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+    /* 添加过渡效果 */
+}
 
 .node:hover {
     border-color: #999;
@@ -153,59 +159,22 @@ body {
     border-radius: 2px;
 }
 
-.port-area {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    margin-top: 50px;
-}
-
-.input-port-area {
-    flex: 1;
-    /* position: relative; */
-    align-self: flex-start;
-    display: flex;
-    flex-direction: column;
-}
-
-.output-port-area {
-    flex: 1;
-    /* position: relative; */
-    align-self: flex-end;
-    display: flex;
-    flex-direction: column;
-}
-.input-port {
-    align-self: flex-start;
-}
-.output-port {
-    align-self: flex-end;
-
-}
-.conponment-area {
-
-    /* 其他样式保持不变 */
-    margin-left: 50px;
-    margin-right: 50px;
-    margin-bottom: 50px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
 .port {
     width: 30px;
     height: 30px;
     background-color: #fcfffc;
     border-radius: 50%;
-    /* position: absolute; */
+    position: absolute;
     cursor: pointer;
 }
 
+.input-port {
+    left: -25px;
+}
 
-
-
+.output-port {
+    right: -25px;
+}
 
 svg {
     position: absolute;
@@ -257,8 +226,8 @@ svg {
 
 .node-run-button {
     position: absolute;
-    top: -25px;  /* 略微超出节点顶部 */
-    left: -25px;  /* 略微超出节点左侧 */
+    top: -30px;  /* 略微超出节点顶部 */
+    left: -30px;  /* 略微超出节点左侧 */
     width: 48px;
     height: 48px;
     padding: 0;
@@ -430,7 +399,7 @@ svg {
 .menu {
     position: absolute;
     display: none;
-    background: #ffffff71;
+    background: #2a2a2a;
     border: 1px solid #3a3a3a;
     border-radius: 5px;
     padding: 10px;
@@ -460,21 +429,4 @@ svg {
 
 .menu-button:hover {
     background: #4a4a4a;
-}
-
-.input-port-type-label {
-    margin-left: 35px; /* 调整标签与端口之间的间距 */
-    color: #fff; /* 标签文字颜色 */
-    font-size: 10px; /* 标签文字大小 */
-    white-space: nowrap; /* 防止文字换行 */
-    font-size: 20px;
-    /* text-align: center; */
-}
-.output-port-type-label {
-    margin-left: -85px; /* 调整标签与端口之间的间距 */
-    color: #fff; /* 标签文字颜色 */
-    font-size: 10px; /* 标签文字大小 */
-    white-space: nowrap; /* 防止文字换行 */
-    font-size: 20px;
-
 }
