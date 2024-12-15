@@ -244,8 +244,6 @@ class Node {
         // this.documentElement.style.backgroundColor = this.backgroundColor;
         // this.documentElement.textContent = this.nodeConfig.type;
 
-        // Initialize components from NodeConfig
-        this.nodeConfig.components.forEach(component => this.addComponent(component));
 
         this.initEvents();
         
@@ -274,6 +272,20 @@ class Node {
         this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
         
+
+        this.portArea = document.createElement('div');
+        this.portArea.className = 'port-area';
+        this.documentElement.appendChild(this.portArea);
+
+
+        this.inputPortArea = document.createElement('div');
+        this.inputPortArea.className = 'input-port-area';
+        this.portArea.appendChild(this.inputPortArea);
+
+        this.outputPortArea = document.createElement('div');
+        this.outputPortArea.className = 'output-port-area';
+        this.portArea.appendChild(this.outputPortArea);
+
         // 创建输入和输出端口
         for (let i = 0; i < this.nodeConfig.inputCount; i++) {
             this.addInput();
@@ -281,6 +293,13 @@ class Node {
         for (let i = 0; i < this.nodeConfig.outputCount; i++) {
             this.addOutput();
         }
+
+        this.conponmentArea = document.createElement('div');
+        this.conponmentArea.className = 'conponment-area';
+        this.documentElement.appendChild(this.conponmentArea);
+        
+        // Initialize components from NodeConfig
+        this.nodeConfig.components.forEach(component => this.addComponent(component));
 
     }
 
@@ -494,7 +513,7 @@ class Node {
     }
     addComponent(component) {
         this.components.push(component);
-        this.documentElement.appendChild(component.element);
+        this.conponmentArea.appendChild(component.element);
     }
     removeComponent(component) {
         const index = this.components.indexOf(component);
@@ -719,7 +738,7 @@ class Node {
         let startIsOutput = false;
         let isDrawing = false;
 
-        const addPortEvents = (port, isOutput) => {
+        const addPortEvents = (fromNode,port, isOutput) => {
             port.addEventListener('mousedown', (e) => {
                 e.stopPropagation(); // 防止与节点拖动冲突
                 startPort = port;
@@ -760,38 +779,49 @@ class Node {
             port.addEventListener('mouseout', (e) => {
                 port.classList.remove('port-highlight');
             });
+
+            port.addEventListener('mouseup', (e) => {
+                // console.log("mouseup",e);
+                let fromPort = startPort;
+                let toPort = port;
+              
+                fromNode.connectPorts(fromPort, toPort);
+            });
         };
 
         // 为所有输入输出端口添加事件
-        this.inputPorts.forEach(port => addPortEvents(port, false));
-        this.outputPorts.forEach(port => addPortEvents(port, true));
+        this.inputPorts.forEach(port => addPortEvents(this,port, false));
+        this.outputPorts.forEach(port => addPortEvents(this,port, true));
 
         // 在document上监听mouseup事件
-        document.addEventListener('mouseup', (e) => {
-            if (!isDrawing) return;
+        // document.addEventListener('mouseup', (e) => {
+        //     if (!isDrawing) return;
             
-            // 查找鼠标释放位置下的端口元素
-            const portElement = document.elementFromPoint(e.clientX, e.clientY);
-            if (portElement && portElement.classList.contains('port')) {
-                const isTargetOutput = portElement.classList.contains('output-port');
+        //     // 查找鼠标释放位置下的端口元素
+        //     const portElement = document.elementFromPoint(e.clientX, e.clientY);
+        //     if (portElement && portElement.classList.contains('port')) {
+        //         const isTargetOutput = portElement.classList.contains('output-port');
                 
-                // 确保一个是输出端口，一个是输入端口
-                if (startIsOutput !== isTargetOutput) {
-                    const fromPort = startIsOutput ? startPort : portElement;
-                    const toPort = startIsOutput ? portElement : startPort;
-                    const fromNode = fromPort.parentNode.node;
-                    fromNode.connectPorts(fromPort, toPort);
-                }
-            }
+        //         // 确保一个是输出端口，一个是输入端口
+        //         if (startIsOutput !== isTargetOutput) {
+        //             console.log("startIsOutput",startIsOutput);
+        //             console.log("isTargetOutput",isTargetOutput);
+        //             let fromPort = startPort ;
+        //             let toPort = portElement;
+        //             const fromNode = fromPort.parentNode.node;
+        //             console.log("fromNode",fromNode);
+        //             fromNode.connectPorts(fromPort, toPort);
+        //         }
+        //     }
 
-            // 重置状态
-            isDrawing = false;
-            startPort = null;
-            // 移除所有端口的高亮效果
-            document.querySelectorAll('.port').forEach(port => {
-                port.classList.remove('port-highlight');
-            });
-        });
+        //     // 重置状态
+        //     isDrawing = false;
+        //     startPort = null;
+        //     // 移除所有端口的高亮效果
+        //     document.querySelectorAll('.port').forEach(port => {
+        //         port.classList.remove('port-highlight');
+        //     });
+        // });
     }
 
     connectPorts(fromPort, toPort) {
@@ -799,7 +829,7 @@ class Node {
         const connectionInfo = ConnectionUtils.createConnection(fromPort, toPort);
         
         // 获取两个节点的引用
-        const fromNode = fromPort.parentNode.node;
+        const fromNode = this;
         const toNode = toPort.parentNode.node;
         
         // 修改：只在源节点保存连接信息
@@ -936,26 +966,43 @@ class Node {
 
     /**
      * 添加输入端口
+     * @param {string} type - 输入端口的类型
      */
-    addInput() {
+    addInput(type = '默认类型') {
         const inputPort = document.createElement('div');
         inputPort.className = 'port input-port';
+        
+        // 创建类型标签
+        const typeLabel = document.createElement('span');
+        typeLabel.className = 'input-port-type-label';
+        typeLabel.textContent = type;
+        inputPort.appendChild(typeLabel);
+
         this.inputPorts.push(inputPort);
-        console.log("inputPorts", this.inputPortsData);
         this.inputPortsData.push([]); // 初始化为空数组
-        this.documentElement.appendChild(inputPort);
+        this.inputPortArea.appendChild(inputPort);
         this.updatePortPositions();
         this.setupPortEvents();
         return inputPort;
     }
 
-    // 修改：添加输出端口方法
-    addOutput() {
+    /**
+     * 添加输出端口
+     * @param {string} type - 输出端口的类型
+     */
+    addOutput(type = '默认类型') {
         const outputPort = document.createElement('div');
         outputPort.className = 'port output-port';
+        
+        // 创建类型标签
+        const typeLabel = document.createElement('span');
+        typeLabel.className = 'output-port-type-label';
+        typeLabel.textContent = type;
+        outputPort.appendChild(typeLabel);
+
         this.outputPorts.push(outputPort);
         this.outputPortsData.push(null);
-        this.documentElement.appendChild(outputPort);
+        this.outputPortArea.appendChild(outputPort);
         this.updatePortPositions();
         this.setupPortEvents();
         return outputPort;

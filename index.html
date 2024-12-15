@@ -24,14 +24,15 @@
                 node.setOutputPortData(1, '1号节点');
                 node.setOutputPortData(2, '2号节点');
             });
+            nodeConfig.addInput();
+        nodeConfig.addInput();
+        nodeConfig.addOutput();
+        nodeConfig.addOutput();
+        nodeConfig.addOutput();
         nodeConfig.addComponent(new TitleComponent(nodeConfig.type));
         nodeConfig.addComponent(new TextAreaComponent());
         nodeConfig.addComponent(new VideoComponent('./第17课.mp4'));
-        nodeConfig.addInput();
-        nodeConfig.addInput();
-        nodeConfig.addOutput();
-        nodeConfig.addOutput();
-        nodeConfig.addOutput();
+ 
         var node1 = new Node(500, 100, nodeConfig);
 
         var nodeConfig2 = new NodeConfig('游戏结构',
