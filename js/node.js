@@ -236,12 +236,7 @@ class Node {
         this.initEvents();
 
         GraphManager.container.appendChild(this.documentElement);
-
-        const resizeHandle = document.createElement('div');
-        resizeHandle.className = 'resize-handle';
-        this.documentElement.appendChild(resizeHandle);
-
-        this.initializeResize(resizeHandle);
+        this.addResizeHandle();
         this.setupPortEvents();
 
         // 添加数据相关的属性
@@ -258,6 +253,13 @@ class Node {
         // 修改：初始化输入和输出端口数据数组
         this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
+    }
+
+    addResizeHandle() {
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'resize-handle';
+        this.documentElement.appendChild(resizeHandle);
+        this.initializeResize(resizeHandle);
     }
 
     /**
@@ -820,25 +822,43 @@ class Node {
         ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
     }
 
-    // 修改：添加输入端口方法
-    addInput() {
+    // 修改：添加输入端口方法，增加类型参数
+    addInput(type = '无') {
         const inputPort = document.createElement('div');
         inputPort.className = 'port input-port';
         this.inputPorts.push(inputPort);
         this.inputPortsData.push([]); // 初始化为空数组
         this.documentElement.appendChild(inputPort);
+
+        // 显示类型标签
+        if (type) {
+            const typeLabel = document.createElement('span');
+            typeLabel.className = 'left-port-type-label';
+            typeLabel.textContent = type;
+            inputPort.appendChild(typeLabel);
+        }
+
         this.updatePortPositions();
         this.setupPortEvents();
         return inputPort;
     }
 
-    // 修改：添加输出端口方法
-    addOutput() {
+    // 修改：添加输出端口方法，增加类型参数
+    addOutput(type = '无') {
         const outputPort = document.createElement('div');
         outputPort.className = 'port output-port';
         this.outputPorts.push(outputPort);
         this.outputPortsData.push(null);
         this.documentElement.appendChild(outputPort);
+
+        // 显示类型标签
+        if (type) {
+            const typeLabel = document.createElement('span');
+            typeLabel.className = 'right-port-type-label';
+            typeLabel.textContent = type;
+            outputPort.appendChild(typeLabel);
+        }
+
         this.updatePortPositions();
         this.setupPortEvents();
         return outputPort;

@@ -431,3 +431,27 @@ svg {
 .menu-button:hover {
     background: #4a4a4a;
 }
+
+.left-port-type-label {
+    position: absolute;
+    left: 35px; /* 调整标签与端口的距离 */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 25px;  /* 设置字体大小 */
+    color: #ffffff;   /* 设置字体颜色 */
+    user-select: none;
+    white-space: nowrap; /* 防止文字换行 */
+    width: auto; /* 自动调整宽度 */
+}
+
+.right-port-type-label {
+    position: absolute;
+    right: 35px; /* 调整标签与端口的距离 */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 25px;  /* 设置字体大小 */
+    color: #ffffff;   /* 设置字体颜色 */
+    user-select: none;
+    white-space: nowrap; /* 防止文字换行 */
+    width: auto; /* 自动调整宽度 */
+}

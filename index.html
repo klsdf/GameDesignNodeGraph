@@ -54,13 +54,10 @@
 
         var node2 = new Node(1000, 200, config2);
         NodeManager.registerNode(node1);
-        // NodeManager.registerNode(node2);
-        node1.addInput();
-        node1.addInput();
-        node1.addOutput();
-        node1.addOutput();
-        node1.addOutput();
-        node2.addInput();
+        node1.addOutput("游戏设计动机");
+        node1.addOutput("2");
+        node1.addOutput("3");
+        node2.addInput("游戏设计动机");
         node1.connectTo(0, node2, 0);
         node1.connectTo(1, node2, 0);
 
