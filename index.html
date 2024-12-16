@@ -23,6 +23,7 @@
             node.setOutputPortData(0, "0号节点");
             node.setOutputPortData(1, '1号节点');
             node.setOutputPortData(2, '2号节点');
+            throw new Error("测试错误");
         });
         config1.addComponent(new TitleComponent("标题"));
         config1.addComponent(new TextAreaComponent());

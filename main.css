@@ -37,9 +37,9 @@ body {
 }
 
 .node.active {
-    border: 2px solid #009100;
-    box-shadow: -1px 2px 18px 13px rgba(56, 116, 0, 0.397);
-    background-color: rgba(104, 255, 74, 0.322);
+    border: 2px solid #002991;
+    box-shadow: -1px 2px 18px 13px rgba(19, 0, 116, 0.397);
+    background-color: rgba(74, 201, 255, 0.322);
 }
 
 .node * {
@@ -64,10 +64,10 @@ body {
 
 /* 保持激活状态的样式优先级更高 */
 .node.active:hover {
-    border: 2px solid #00b300;
+    border: 2px solid #0048b3;
     /* 略微加深边框颜色 */
-    box-shadow: -1px 2px 18px 13px rgba(56, 116, 0, 0.6);
-    background-color: rgba(104, 255, 74, 0.4);
+    box-shadow: -1px 2px 18px 13px rgba(0, 0, 116, 0.6);
+    background-color: rgba(74, 98, 255, 0.4);
 }
 
 
@@ -278,6 +278,8 @@ svg {
 
 .node.error {
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    background-color: rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.616);
 }
 
 

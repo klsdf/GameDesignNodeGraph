@@ -190,6 +190,7 @@ class ConnectionUtils {
 /**
  * 节点类
  * 表示流程图中的一个节点，包含输入输出端口、数据处理和连接管理功能
+ * 通过NodeConfig类来配置节点
  */
 class Node {
     /**
@@ -224,7 +225,7 @@ class Node {
         this.documentElement = document.createElement('div');
 
         this.documentElement.className = 'node';
-        this.documentElement.id = 'node' + Node.nodeCounter;
+        // this.documentElement.id = 'node' + Node.nodeCounter;
         // this.documentElement.contentEditable = true;
         this.documentElement.style.left = (x - 50) + 'px';
         this.documentElement.style.top = (y - 25) + 'px';
@@ -232,18 +233,17 @@ class Node {
         this.documentElement.style.height = nodeConfig.height;
 
 
-     
         this.initEvents();
 
         GraphManager.container.appendChild(this.documentElement);
         this.addResizeHandle();
-        this.setupPortEvents();
-
+    
         // 添加数据相关的属性
-        this.data = null;  // 节点的数据
+        // this.data = null;  // 节点的数据
         
         // 添加运行按钮
         this.addRunButton();
+        // 添加组件
         this.updateComponent();
         //  保存节点
         this.documentElement.node = this;
@@ -263,8 +263,14 @@ class Node {
         this.nodeConfig.outputPorts.forEach(portConfig => {
             this.addOutput(portConfig.type);
         });
+        this.setupPortEvents();
+
     }
 
+
+    /*
+    * 添加节点拖拽的控制
+    */
     addResizeHandle() {
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
@@ -353,7 +359,7 @@ class Node {
             
             setTimeout(() => {
                 this.documentElement.classList.remove('error');
-            }, 1000);
+            }, 2000);
         }
     }
 
@@ -404,6 +410,9 @@ class Node {
     }
 
 
+    /*
+    * 更新端口位置
+    */
     updatePortPositions() {
         // 更新输入端口位置
         const inputSpacing = this.documentElement.offsetHeight / (this.inputPorts.length + 1);
@@ -438,8 +447,8 @@ class Node {
     static clearAllNodes() {
         document.querySelectorAll('.node').forEach(node => node.remove());
         connections = [];
-        // drawAllConnections();
     }
+
     // 设置节点拖拽
     setupNodeDrag(e) {
         if (!e || typeof e.button === 'undefined') {
@@ -929,7 +938,11 @@ class Node {
     }
 }
 
-// 将 NodeType 类重命名为 NodeConfig
+
+/**
+ * 节点配置类
+ * 负责管理节点的类型、大小、处理函数等信息
+ */
 class NodeConfig {
     constructor(parentType="默认", type="默认", processFunction=()=>{console.log("默认处理函数")},width = "300px",height = '400px') {
         this.parentType = parentType;
