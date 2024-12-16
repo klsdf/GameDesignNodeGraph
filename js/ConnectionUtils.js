@@ -1,4 +1,9 @@
 
+
+/**
+ * 连接信息类
+ * 用于存储连接信息，包括起始端口、目标端口和连接线
+ */
 class ConnectionInfo{
     constructor(from,fromIndex ,to,toIndex,path){
         this.from = from;

@@ -26,9 +26,9 @@ class NodeManager {
         if (existingNode) {
             throw new Error(`节点类型 '${node.nodeConfig.type}' 已存在于 '${node.nodeConfig.parentType}' 分类中`);
         }
-        NodeManager.nodes[node.nodeConfig.parentType].push({ 
-            type: node.nodeConfig.type, 
-            processFunction: node.nodeConfig.processFunction 
+        NodeManager.nodes[node.nodeConfig.parentType].push({
+            type: node.nodeConfig.type,
+            processFunction: node.nodeConfig.processFunction
         });
         NodeManager.updateNodeList();
     }
@@ -74,6 +74,36 @@ class NodeManager {
 
 
 /**
+ * 端口类
+ * 表示节点上的输入输出端口，包含端口所属节点、索引和类型信息
+ */
+class Port {
+    /**
+     * 创建新端口
+     * @param {Node} node - 端口所属的节点
+     * @param {number} index - 端口在节点中的索引
+     * @param {string} type - 端口类型，'input'表示输入端口，'output'表示输出端口
+     */
+    constructor(node, index, type) {
+        /** @type {Node} 端口所属节点 */
+        this.node = node;
+        
+        /** @type {number} 端口索引 */
+        this.index = index;
+        
+        /** @type {string} 端口类型 */
+        this.type = type;
+
+        /** @type {Array} 端口数据 */
+        this.data = [];
+        
+        /** @type {HTMLElement} 端口DOM元素 */
+        this.element = null;
+    }
+}
+
+
+/**
  * 节点类
  * 表示流程图中的一个节点，包含输入输出端口、数据处理和连接管理功能
  * 通过NodeConfig类来配置节点
@@ -89,16 +119,16 @@ class Node {
     constructor(x, y, nodeConfig) {
         /** @type {boolean} 是否正在移动 */
         this.ismoving = false;
-        
+
         /** @type {number} 节点X坐标 */
         this.x = x;
-        
+
         /** @type {number} 节点Y坐标 */
         this.y = y;
-        
+
         /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
-        
+
         /** @type {Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>} 节点连接列表,每个连接包含起始端口、目标端口和SVG路径元素
          * 例如:
          * [
@@ -110,10 +140,10 @@ class Node {
          * ]
          */
         this.connections = []; // 存储节点之间的连接信息
-        
+
         /** @type {Array<HTMLElement>} 输入端口列表 */
         this.inputPorts = [];
-        
+
         /** @type {Array<HTMLElement>} 输出端口列表 */
         this.outputPorts = [];
 
@@ -132,10 +162,10 @@ class Node {
 
         GraphManager.container.appendChild(this.documentElement);
         this.addResizeHandle();
-    
+
         // 添加数据相关的属性
         // this.data = null;  // 节点的数据
-        
+
         // 添加运行按钮
         this.addRunButton();
         // 添加组件
@@ -199,39 +229,39 @@ class Node {
             // 在处理数据前清空当前节点的输入和输出数据
             this.clearData();
 
-                // 获取所有输入连接，并按端口索引分组
-                const incomingConnections = this.getIncomingConnections();
-                
-                // 使用 Set 来存储每个端口的唯一数据
-                const portDataMap = new Map();
-                
-                incomingConnections.forEach(conn => {
-                    const toPortIndex = this.inputPorts.indexOf(conn.to);
-                    const sourceNode = conn.from.parentNode.node;
-                    const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
-                    const outputData = sourceNode.outputPortsData[fromPortIndex];
-                    
-                    if (!portDataMap.has(toPortIndex)) {
-                        portDataMap.set(toPortIndex, new Set());
-                    }
-                    
-                    if (outputData !== null) {
-                        portDataMap.get(toPortIndex).add(outputData);
-                    }
-                });
+            // 获取所有输入连接，并按端口索引分组
+            const incomingConnections = this.getIncomingConnections();
 
-                // 将 Set 转换回数组并保存到 inputPortsData
-                for (const [portIndex, dataSet] of portDataMap) {
-                    this.inputPortsData[portIndex] = Array.from(dataSet);
+            // 使用 Set 来存储每个端口的唯一数据
+            const portDataMap = new Map();
+
+            incomingConnections.forEach(conn => {
+                const toPortIndex = this.inputPorts.indexOf(conn.to);
+                const sourceNode = conn.from.parentNode.node;
+                const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
+                const outputData = sourceNode.outputPortsData[fromPortIndex];
+
+                if (!portDataMap.has(toPortIndex)) {
+                    portDataMap.set(toPortIndex, new Set());
                 }
 
-                // 处理当前节点的数据
-                await this.processData();
+                if (outputData !== null) {
+                    portDataMap.get(toPortIndex).add(outputData);
+                }
+            });
+
+            // 将 Set 转换回数组并保存到 inputPortsData
+            for (const [portIndex, dataSet] of portDataMap) {
+                this.inputPortsData[portIndex] = Array.from(dataSet);
+            }
+
+            // 处理当前节点的数据
+            await this.processData();
 
             // 运行下游节点
             const outgoingConnections = this.getOutgoingConnections();
             const processedNodes = new Set(); // 用于跟踪已处理的节点
-            
+
             for (const conn of outgoingConnections) {
                 const targetNode = conn.to.parentNode.node;
                 if (!processedNodes.has(targetNode)) {
@@ -242,7 +272,7 @@ class Node {
 
             this.documentElement.classList.remove('processing');
             this.documentElement.classList.add('processed');
-            
+
             setTimeout(() => {
                 this.documentElement.classList.remove('processed');
             }, 500);
@@ -251,7 +281,7 @@ class Node {
             console.error('节点处理出错:', error);
             this.documentElement.classList.remove('processing');
             this.documentElement.classList.add('error');
-            
+
             setTimeout(() => {
                 this.documentElement.classList.remove('error');
             }, 2000);
@@ -280,15 +310,15 @@ class Node {
         this.documentElement.addEventListener('mousedown', (e) => {
             // 如果点击的是端口或其他控件，不处理
             if (e.target !== this.documentElement) return;
-            
+
             // 移除所有其他节点的 active 类
             document.querySelectorAll('.node').forEach(node => {
                 node.classList.remove('active');
             });
-            
+
             // 为当前节点添加 active 类
             this.documentElement.classList.add('active');
-            
+
             // 开始拖拽处理
             this.setupNodeDrag(e);
         });
@@ -445,21 +475,6 @@ class Node {
         });
     }
 
-    // updateConnection(connection) {
-    //     alert( connection.from,connection.to)  
-    //     const scale = GraphManager.zoom;
-    //     const fromRect = connection.from.getBoundingClientRect();
-    //     const toRect = connection.to.getBoundingClientRect();
-
-    //     // 计算实际位置，考虑缩放
-    //     const x1 = (fromRect.right - GraphManager.container.getBoundingClientRect().left) / scale;
-    //     const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-    //     const x2 = (toRect.left - GraphManager.container.getBoundingClientRect().left) / scale;
-    //     const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-
-    //     ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
-    // }
-
     // 添加删除连接的方法
     removeConnection(connection) {
         // 从当前节点的连接列表中移除
@@ -496,148 +511,6 @@ class Node {
         });
     }
 
-    // #endregion
-
-    // 初始化节点大小调整
-
-    initializeResize(resizeHandle) {
-        let isResizing = false;
-        let originalWidth = this.documentElement.offsetWidth;
-        let originalHeight = this.documentElement.offsetHeight;
-        let originalX = this.documentElement.offsetLeft;
-        let originalY = this.documentElement.offsetTop;
-
-        resizeHandle.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            originalWidth = this.documentElement.offsetWidth;
-            originalHeight = this.documentElement.offsetHeight;
-            originalX = e.clientX;
-            originalY = e.clientY;
-
-            e.stopPropagation(); // 防止与节点拖动冲突
-        });
-
-        // 通过右下角的控制块调整大小
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-
-            const deltaX = e.clientX - originalX;
-            const deltaY = e.clientY - originalY;
-
-            const newWidth = Math.max(200, originalWidth + deltaX); // 最小宽度 200px
-            const newHeight = Math.max(200, originalHeight + deltaY); // 最小高度 200px
-
-            this.documentElement.style.width = newWidth + 'px';
-            this.documentElement.style.height = newHeight + 'px';
-
-            // 更新端口位置
-            this.updatePortPositions();
-            
-            // 更新所有连接的位置
-            this.updateAllConnections();
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isResizing) {
-                isResizing = false;
-                // 确保在调整大小结束时也更新一次连接
-                this.updateAllConnections();
-            }
-        });
-    }
-    static startNode;
-    static startPort;
-    static endNode;
-    static endPort;
-
-    setupPortEvents() {
-        let startPort = null;
-        let startIsOutput = false;
-        let isDrawing = false;
-
-        const addPortEvents = (port, isOutput) => {
-            port.addEventListener('mousedown', (e) => {
-                e.stopPropagation(); // 防止与节点拖动冲突
-                startPort = port;
-                startIsOutput = isOutput;
-                isDrawing = true;
-
-                // 新增：如果端口已经有连接，先删除现有连接
-                const existingConnections = this.connections.filter(conn => 
-                    (isOutput && conn.from === port) || (!isOutput && conn.to === port)
-                );
-                
-                existingConnections.forEach(conn => {
-                    // 从两个节点中都删除这个连接
-                    const fromNode = conn.from.parentNode.node;
-                    const toNode = conn.to.parentNode.node;
-                    fromNode.removeConnection(conn);
-                    if (fromNode !== toNode) {
-                        toNode.removeConnection(conn);
-                    }
-                });
-
-                console.log('Start drawing connection from:', startPort, 'Event target:', e.target);
-                this.startDrawingConnection(e);
-            });
-
-            // 当鼠标移动到端口上时添加高亮效果
-            port.addEventListener('mouseover', (e) => {
-                if (isDrawing && startPort !== port) {
-                    // 检查是否可以建立连接
-                    const canConnect = startIsOutput !== isOutput; // 一个输入一个输出
-                    if (canConnect) {
-                        port.classList.add('port-highlight');
-                    }
-                }
-            });
-
-            // 移出时移除高亮
-            port.addEventListener('mouseout', (e) => {
-                port.classList.remove('port-highlight');
-            });
-        };
-
-        // 为所有输入输出端口添加事件
-        this.inputPorts.forEach(port => addPortEvents(port, false));
-        this.outputPorts.forEach(port => addPortEvents(port, true));
-
-        // 在document上监听mouseup事件
-        document.addEventListener('mouseup', (e) => {
-            if (!isDrawing) return;
-            
-            // 查找鼠标释放位置下的端口元素
-            const portElement = document.elementFromPoint(e.clientX, e.clientY);
-            if (portElement && portElement.classList.contains('port')) {
-                const isTargetOutput = portElement.classList.contains('output-port');
-                
-                // 确保一个是输出端口，一个是输入端口
-                if (startIsOutput !== isTargetOutput) {
-                    const fromPort = startIsOutput ? startPort : portElement;
-                    const toPort = startIsOutput ? portElement : startPort;
-                    const fromNode = fromPort.parentNode.node;
-                    const toNode = toPort.parentNode.node;
-
-                    console.log("fromNode",fromNode);
-                    console.log("toNode",toNode);
-                    console.log("fromPort",fromPort);
-                    console.log("toPort",toPort);
-                    fromNode.connectPorts(fromPort, toPort);
-                    // fromNode.connectTo(fromPort,toNode, toPort);
-                }
-            }
-
-            // 重置状态
-            isDrawing = false;
-            startPort = null;
-            // 移除所有端口的高亮效果
-            document.querySelectorAll('.port').forEach(port => {
-                port.classList.remove('port-highlight');
-            });
-        });
-    }
-
-
     /**
      * 用鼠标连接连接两个端口，会自动找到端口索引，创建连接信息对象，并更新连接线位置
      * @param {HTMLElement} fromPort - 起始端口
@@ -654,31 +527,15 @@ class Node {
         // 获取两个节点的引用
         const fromNode = fromPort.parentNode.node;
         const toNode = toPort.parentNode.node;
-        
+
         // 修改：只在源节点保存连接信息
         fromNode.connections.push(connectionInfo);
-        
+
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
     }
 
-    // updatePortConnection(connection) {
-    //     alert(connection.from,connection.to)  
-    //     const scale = GraphManager.zoom;
-    //     const fromRect = connection.from.getBoundingClientRect();
-    //     const toRect = connection.to.getBoundingClientRect();
 
-    //     // 计算实际位置，考虑缩放
-    //     const x1 = (fromRect.left + fromRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
-    //     const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-    //     const x2 = (toRect.left + toRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
-    //     const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-
-    //     ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
-    // }
-
-
-    
     /**
      * 开始绘制鼠标拖拽形成的临时连接
      */
@@ -737,8 +594,8 @@ class Node {
         //     to: toPort,
         //     path: connection
         // };
-        const connectionInfo = new ConnectionInfo(fromPort,fromPortIndex,toPort,toPortIndex,connection);
-        
+        const connectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
+
         this.connections.push(connectionInfo);
         targetNode.connections.push(connectionInfo);
 
@@ -772,6 +629,150 @@ class Node {
 
         ConnectionUtils.updateConnection(connectionInfo.path, x1, y1, x2, y2);
     }
+
+
+    // #endregion
+
+    // #region 节点大小调整
+
+    // 初始化节点大小调整
+
+    initializeResize(resizeHandle) {
+        let isResizing = false;
+        let originalWidth = this.documentElement.offsetWidth;
+        let originalHeight = this.documentElement.offsetHeight;
+        let originalX = this.documentElement.offsetLeft;
+        let originalY = this.documentElement.offsetTop;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            originalWidth = this.documentElement.offsetWidth;
+            originalHeight = this.documentElement.offsetHeight;
+            originalX = e.clientX;
+            originalY = e.clientY;
+
+            e.stopPropagation(); // 防止与节点拖动冲突
+        });
+
+        // 通过右下角的控制块调整大小
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            const deltaX = e.clientX - originalX;
+            const deltaY = e.clientY - originalY;
+
+            const newWidth = Math.max(200, originalWidth + deltaX); // 最小宽度 200px
+            const newHeight = Math.max(200, originalHeight + deltaY); // 最小高度 200px
+
+            this.documentElement.style.width = newWidth + 'px';
+            this.documentElement.style.height = newHeight + 'px';
+
+            // 更新端口位置
+            this.updatePortPositions();
+
+            // 更新所有连接的位置
+            this.updateAllConnections();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                // 确保在调整大小结束时也更新一次连接
+                this.updateAllConnections();
+            }
+        });
+    }
+
+    // #endregion
+
+    setupPortEvents() {
+        let startPort = null;
+        let startIsOutput = false;
+        let isDrawing = false;
+
+        const addPortEvents = (port, isOutput) => {
+            port.addEventListener('mousedown', (e) => {
+                e.stopPropagation(); // 防止与节点拖动冲突
+                startPort = port;
+                startIsOutput = isOutput;
+                isDrawing = true;
+
+                // 新增：如果端口已经有连接，先删除现有连接
+                const existingConnections = this.connections.filter(conn =>
+                    (isOutput && conn.from === port) || (!isOutput && conn.to === port)
+                );
+
+                existingConnections.forEach(conn => {
+                    // 从两个节点中都删除这个连接
+                    const fromNode = conn.from.parentNode.node;
+                    const toNode = conn.to.parentNode.node;
+                    fromNode.removeConnection(conn);
+                    if (fromNode !== toNode) {
+                        toNode.removeConnection(conn);
+                    }
+                });
+
+                console.log('Start drawing connection from:', startPort, 'Event target:', e.target);
+                this.startDrawingConnection(e);
+            });
+
+            // 当鼠标移动到端口上时添加高亮效果
+            port.addEventListener('mouseover', (e) => {
+                if (isDrawing && startPort !== port) {
+                    // 检查是否可以建立连接
+                    const canConnect = startIsOutput !== isOutput; // 一个输入一个输出
+                    if (canConnect) {
+                        port.classList.add('port-highlight');
+                    }
+                }
+            });
+
+            // 移出时移除高亮
+            port.addEventListener('mouseout', (e) => {
+                port.classList.remove('port-highlight');
+            });
+        };
+
+        // 为所有输入输出端口添加事件
+        this.inputPorts.forEach(port => addPortEvents(port, false));
+        this.outputPorts.forEach(port => addPortEvents(port, true));
+
+        // 在document上监听mouseup事件
+        document.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+
+            // 查找鼠标释放位置下的端口元素
+            const portElement = document.elementFromPoint(e.clientX, e.clientY);
+            if (portElement && portElement.classList.contains('port')) {
+                const isTargetOutput = portElement.classList.contains('output-port');
+
+                // 确保一个是输出端口，一个是输入端口
+                if (startIsOutput !== isTargetOutput) {
+                    const fromPort = startIsOutput ? startPort : portElement;
+                    const toPort = startIsOutput ? portElement : startPort;
+                    const fromNode = fromPort.parentNode.node;
+                    const toNode = toPort.parentNode.node;
+
+                    console.log("fromNode", fromNode);
+                    console.log("toNode", toNode);
+                    console.log("fromPort", fromPort);
+                    console.log("toPort", toPort);
+                    fromNode.connectPorts(fromPort, toPort);
+                    // fromNode.connectTo(fromPort,toNode, toPort);
+                }
+            }
+
+            // 重置状态
+            isDrawing = false;
+            startPort = null;
+            // 移除所有端口的高亮效果
+            document.querySelectorAll('.port').forEach(port => {
+                port.classList.remove('port-highlight');
+            });
+        });
+    }
+
+
 
     // 修改：添加输入端口方法，增加类型参数
     addInput(type = '无') {
@@ -830,10 +831,10 @@ class Node {
             console.warn(`Invalid output port index: ${index}`);
             return;
         }
-        
+
         // 保存数据到输出端口
         this.outputPortsData[index] = data;
-        
+
         // 不再在这里直接传递数据到下游节点
         // 数据传递将在 run 方法中进行
         console.log(`Output port ${index} set to:`, data);
@@ -876,7 +877,7 @@ class Node {
  * 负责管理节点的类型、大小、处理函数等信息
  */
 class NodeConfig {
-    constructor(parentType="默认", type="默认", processFunction=()=>{console.log("默认处理函数")},width = "300px",height = '400px') {
+    constructor(parentType = "默认", type = "默认", processFunction = () => { console.log("默认处理函数") }, width = "300px", height = '400px') {
         this.parentType = parentType;
         this.type = type;
         this.processFunction = processFunction || this.defaultProcess;
@@ -892,29 +893,25 @@ class NodeConfig {
         this.outputPorts = [];
     }
 
-    
+
     /**
      * 添加组件到节点配置中
      * @param {Component} component - 要添加的组件
      */
-    addComponent(component)
-    {
+    addComponent(component) {
         this.components.push(component);
     }
 
 
-    setType(parentType,type)
-    {
+    setType(parentType, type) {
         this.parentType = parentType;
         this.type = type;
     }
-    setSize(width,height)
-    {
+    setSize(width, height) {
         this.width = width;
         this.height = height;
     }
-    setProcessFunction(processFunction)
-    {
+    setProcessFunction(processFunction) {
         this.processFunction = processFunction;
     }
 
