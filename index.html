@@ -4,9 +4,26 @@
 <head>
     <title>节点连线演示</title>
     <link rel="stylesheet" href="main.css">
+    <style>
+        /* 添加样式以固定帧率显示位置 */
+        #fpsDisplay {
+            position: fixed;
+            left: 10px;
+            bottom: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 
 <body>
+    <!-- 帧率显示元素 -->
+    <div id="fpsDisplay">FPS: 0</div>
+
+    <script src="./js/ConnectionUtils.js"></script>
     <script src="./js/node.js"></script>
     <script src="./js/graph.js"></script>
     <script src="./js/component.js"></script>
@@ -23,7 +40,7 @@
             node.setOutputPortData(0, "0号节点");
             node.setOutputPortData(1, '1号节点');
             node.setOutputPortData(2, '2号节点');
-            throw new Error("测试错误");
+            // throw new Error("测试错误");
         });
         config1.addComponent(new TitleComponent("标题"));
         config1.addComponent(new TextAreaComponent());
@@ -54,14 +71,27 @@
         var node2 = new Node(1000, 200, config2);
         NodeManager.registerNode(node1);
 
-
         node1.connectTo(0, node2, 0);
 
+        // 帧率计算和显示
+        let lastFrameTime = performance.now();
+        let frameCount = 0;
+        let fps = 0;
+
+        function updateFPS() {
+            const now = performance.now();
+            frameCount++;
+            if (now - lastFrameTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFrameTime = now;
+                document.getElementById('fpsDisplay').textContent = `FPS: ${fps}`;
+            }
+            requestAnimationFrame(updateFPS);
+        }
+
+        updateFPS();
     </script>
-
-
-
-
 </body>
 
 </html>

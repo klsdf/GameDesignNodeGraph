@@ -72,120 +72,6 @@ class NodeManager {
     }
 }
 
-/**
- * 连接工具类
- * 提供创建和管理节点间连接线的工具方法
- */
-class ConnectionUtils {
-    /**
-     * 在指定容器中绘制连接线
-     * @returns {SVGElement} 创建的连接线元素
-     */
-    static drawConnection() {
-        const container = this.getSvgContainer();
-        const connection = document.createElementNS('http://www.w3.org/2000/svg', "svg");
-        const path = document.createElementNS('http://www.w3.org/2000/svg', "path");
-        path.classList.add("main-path");
-        path.setAttributeNS(null, 'd', '');
-        connection.classList.add("connection");
-        connection.appendChild(path);
-        container.appendChild(connection);
-
-        this.setStyle(connection, {
-            stroke: '#fff',
-            strokeWidth: '5',
-            strokeDasharray: '10, 10'
-        });
-
-
-        return connection;
-    }
-
-    /**
-     * 获取或创建SVG容器
-     * @returns {SVGElement} SVG容器元素
-     */
-    static getSvgContainer() {
-        let svg = document.getElementById('connection-svg');
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.id = 'connection-svg';
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '1';
-            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
-        }
-        return svg;
-    }
-
-
-
-    /**
-     * 创建两个端口之间的连接
-     * @param {HTMLElement} fromPort - 起始端口
-     * @param {HTMLElement} toPort - 目标端口
-     * @returns {Object} 连接信息对象
-     */
-    static createConnection(fromPort, toPort) {
-        const connection = this.drawConnection();
-        
-        const connectionInfo = {
-            from: fromPort,
-            to: toPort,
-            path: connection
-        };
-
-
-        return connectionInfo;
-    }
-
-    /**
-     * 更新连接线的路径
-     * @param {SVGElement} connection - 连接线元素
-     * @param {number} startX - 起始X坐标
-     * @param {number} startY - 起始Y坐标
-     * @param {number} endX - 结束X坐标
-     * @param {number} endY - 结束Y坐标
-     * @param {number} [curvature=0.5] - 曲线弯曲程度
-     */
-    static updateConnection(connection, startX, startY, endX, endY, curvature = 0.5) {
-        const path = connection.children[0];
-        const lineCurve = this.createCurvature(startX, startY, endX, endY, curvature);
-        path.setAttributeNS(null, 'd', lineCurve);
-    }
-
-    /**
-     * 创建贝塞尔曲线路径
-     * @param {number} startX - 起始X坐标
-     * @param {number} startY - 起始Y坐标
-     * @param {number} endX - 结束X坐标
-     * @param {number} endY - 结束Y坐标
-     * @param {number} curvature - 曲线弯曲程度
-     * @returns {string} SVG路径字符串
-     */
-    static createCurvature(startX, startY, endX, endY, curvature) {
-        const hx1 = startX + Math.abs(endX - startX) * curvature;
-        const hx2 = endX - Math.abs(endX - startX) * curvature;
-        return `M ${startX} ${startY} C ${hx1} ${startY} ${hx2} ${endY} ${endX} ${endY}`;
-    }
-
-    /**
-     * 设置连接线样式
-     * @param {SVGElement} connection - 连接线元素
-     * @param {Object} style - 样式对象
-     */
-    static setStyle(connection, style) {
-        const path = connection.children[0];
-        Object.keys(style).forEach(key => {
-            path.style[key] = style[key];
-        });
-    }
-}
-
 
 /**
  * 节点类
@@ -193,6 +79,7 @@ class ConnectionUtils {
  * 通过NodeConfig类来配置节点
  */
 class Node {
+    // #region 节点初始化
     /**
      * 创建新节点
      * @param {number} x - 节点初始X坐标
@@ -212,9 +99,17 @@ class Node {
         /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
         
-        
-        /** @type {Array} 节点连接列表 */
-        this.connections = [];//连接的节点
+        /** @type {Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>} 节点连接列表,每个连接包含起始端口、目标端口和SVG路径元素
+         * 例如:
+         * [
+         *   {
+         *     from: <div class="output-port">, // 起始端口元素
+         *     to: <div class="input-port">, // 目标端口元素
+         *     path: <svg class="connection"> // 连接线SVG元素
+         *   }
+         * ]
+         */
+        this.connections = []; // 存储节点之间的连接信息
         
         /** @type {Array<HTMLElement>} 输入端口列表 */
         this.inputPorts = [];
@@ -266,7 +161,7 @@ class Node {
         this.setupPortEvents();
 
     }
-
+    // #endregion
 
     /*
     * 添加节点拖拽的控制
@@ -535,7 +430,7 @@ class Node {
 
 
 
-    //连接相关
+    // #region 连接相关
     updateAllConnections() {
         // 更新当前节点作为源节点的所有连接
         this.connections.forEach(conn => {
@@ -550,20 +445,20 @@ class Node {
         });
     }
 
-    updateConnection(connection) {
-        // console.log( connection.from,connection.to)
-        const scale = GraphManager.zoom;
-        const fromRect = connection.from.getBoundingClientRect();
-        const toRect = connection.to.getBoundingClientRect();
+    // updateConnection(connection) {
+    //     alert( connection.from,connection.to)  
+    //     const scale = GraphManager.zoom;
+    //     const fromRect = connection.from.getBoundingClientRect();
+    //     const toRect = connection.to.getBoundingClientRect();
 
-        // 计算实际位置，考虑缩放
-        const x1 = (fromRect.right - GraphManager.container.getBoundingClientRect().left) / scale;
-        const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-        const x2 = (toRect.left - GraphManager.container.getBoundingClientRect().left) / scale;
-        const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
+    //     // 计算实际位置，考虑缩放
+    //     const x1 = (fromRect.right - GraphManager.container.getBoundingClientRect().left) / scale;
+    //     const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
+    //     const x2 = (toRect.left - GraphManager.container.getBoundingClientRect().left) / scale;
+    //     const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
 
-        ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
-    }
+    //     ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
+    // }
 
     // 添加删除连接的方法
     removeConnection(connection) {
@@ -600,6 +495,8 @@ class Node {
             this.removeConnection(connection);
         });
     }
+
+    // #endregion
 
     // 初始化节点大小调整
 
@@ -648,6 +545,10 @@ class Node {
             }
         });
     }
+    static startNode;
+    static startPort;
+    static endNode;
+    static endPort;
 
     setupPortEvents() {
         let startPort = null;
@@ -676,7 +577,7 @@ class Node {
                     }
                 });
 
-                console.log('Start drawing connection from:', startPort);
+                console.log('Start drawing connection from:', startPort, 'Event target:', e.target);
                 this.startDrawingConnection(e);
             });
 
@@ -715,7 +616,14 @@ class Node {
                     const fromPort = startIsOutput ? startPort : portElement;
                     const toPort = startIsOutput ? portElement : startPort;
                     const fromNode = fromPort.parentNode.node;
+                    const toNode = toPort.parentNode.node;
+
+                    console.log("fromNode",fromNode);
+                    console.log("toNode",toNode);
+                    console.log("fromPort",fromPort);
+                    console.log("toPort",toPort);
                     fromNode.connectPorts(fromPort, toPort);
+                    // fromNode.connectTo(fromPort,toNode, toPort);
                 }
             }
 
@@ -729,10 +637,20 @@ class Node {
         });
     }
 
+
+    /**
+     * 用鼠标连接连接两个端口，会自动找到端口索引，创建连接信息对象，并更新连接线位置
+     * @param {HTMLElement} fromPort - 起始端口
+     * @param {HTMLElement} toPort - 目标端口
+     */
     connectPorts(fromPort, toPort) {
-        console.log('Connecting ports:', fromPort, toPort);
-        const connectionInfo = ConnectionUtils.createConnection(fromPort, toPort);
-        
+        // 获取端口索引
+        const fromPortIndex = Array.from(fromPort.parentNode.querySelectorAll('.output-port')).indexOf(fromPort);
+        const toPortIndex = Array.from(toPort.parentNode.querySelectorAll('.input-port')).indexOf(toPort);
+        // 创建连接线
+        const connection = ConnectionUtils.drawConnection();
+        // 创建连接信息对象
+        const connectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
         // 获取两个节点的引用
         const fromNode = fromPort.parentNode.node;
         const toNode = toPort.parentNode.node;
@@ -744,19 +662,20 @@ class Node {
         this.updatePortConnection(connectionInfo);
     }
 
-    updatePortConnection(connection) {
-        const scale = GraphManager.zoom;
-        const fromRect = connection.from.getBoundingClientRect();
-        const toRect = connection.to.getBoundingClientRect();
+    // updatePortConnection(connection) {
+    //     alert(connection.from,connection.to)  
+    //     const scale = GraphManager.zoom;
+    //     const fromRect = connection.from.getBoundingClientRect();
+    //     const toRect = connection.to.getBoundingClientRect();
 
-        // 计算实际位置，考虑缩放
-        const x1 = (fromRect.left + fromRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
-        const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
-        const x2 = (toRect.left + toRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
-        const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
+    //     // 计算实际位置，考虑缩放
+    //     const x1 = (fromRect.left + fromRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
+    //     const y1 = (fromRect.top + fromRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
+    //     const x2 = (toRect.left + toRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
+    //     const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
 
-        ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
-    }
+    //     ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
+    // }
 
 
     
@@ -790,6 +709,13 @@ class Node {
     }
 
 
+    /**
+     * 连接到目标节点
+     * @param {number} fromPortIndex - 当前节点的输出端口索引
+     * @param {Node} targetNode - 目标节点对象
+     * @param {number} toPortIndex - 目标节点的输入端口索引
+     * @throws {Error} 当端口索引无效时抛出错误
+     */
     connectTo(fromPortIndex, targetNode, toPortIndex) {
         // 检查索引是否有效
         if (fromPortIndex < 0 || fromPortIndex >= this.outputPorts.length) {
@@ -806,12 +732,13 @@ class Node {
         const connection = ConnectionUtils.drawConnection();
 
         // 存储连接信息
-        const connectionInfo = {
-            from: fromPort,
-            to: toPort,
-            path: connection
-        };
-
+        // const connectionInfo = {
+        //     from: fromPort,
+        //     to: toPort,
+        //     path: connection
+        // };
+        const connectionInfo = new ConnectionInfo(fromPort,fromPortIndex,toPort,toPortIndex,connection);
+        
         this.connections.push(connectionInfo);
         targetNode.connections.push(connectionInfo);
 
@@ -827,10 +754,15 @@ class Node {
         // });
     }
 
-    updatePortConnection(connection) {
+
+    /**
+     * 更新连接线的位置
+     * @param {ConnectionInfo} connectionInfo - 连接信息对象
+     */
+    updatePortConnection(connectionInfo) {
         const scale = GraphManager.zoom;
-        const fromRect = connection.from.getBoundingClientRect();
-        const toRect = connection.to.getBoundingClientRect();
+        const fromRect = connectionInfo.from.getBoundingClientRect();
+        const toRect = connectionInfo.to.getBoundingClientRect();
 
         // 计算实际位置，考虑缩放
         const x1 = (fromRect.left + fromRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
@@ -838,7 +770,7 @@ class Node {
         const x2 = (toRect.left + toRect.width / 2 - GraphManager.container.getBoundingClientRect().left) / scale;
         const y2 = (toRect.top + toRect.height / 2 - GraphManager.container.getBoundingClientRect().top) / scale;
 
-        ConnectionUtils.updateConnection(connection.path, x1, y1, x2, y2);
+        ConnectionUtils.updateConnection(connectionInfo.path, x1, y1, x2, y2);
     }
 
     // 修改：添加输入端口方法，增加类型参数

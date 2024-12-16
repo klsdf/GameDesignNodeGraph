@@ -25,8 +25,7 @@ class SaveManager {
 
             const nodeState = {
                 id: nodeElement.id,
-                type: node.nodeConfig.type,
-                parentType: node.nodeConfig.parentType,
+                nodeConfig: node.nodeConfig,
                 position: {
                     x: nodeElement.style.left,
                     y: nodeElement.style.top
@@ -100,7 +99,7 @@ class SaveManager {
             const node = new Node(
                 parseInt(nodeState.position.x),
                 parseInt(nodeState.position.y),
-                new NodeConfig(nodeState.parentType, nodeState.type)
+                nodeState.nodeConfig
             );
             node.documentElement.id = nodeState.id;
             node.documentElement.style.width = nodeState.size.width;
