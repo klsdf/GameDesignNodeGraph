@@ -16,19 +16,32 @@
             border-radius: 5px;
             font-family: Arial, sans-serif;
         }
+
+        #runtimeDisplay {
+            position: fixed;
+            left: 10px;
+            bottom: 40px; /* 调整位置以避免与 fpsDisplay 重叠 */
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
     </style>
 </head>
 
 <body>
     <!-- 帧率显示元素 -->
     <div id="fpsDisplay">FPS: 0</div>
+    <!-- 运行时间显示元素 -->
+    <div id="runtimeDisplay">运行时间: 00:00:00</div>
 
-    <script src="./js/ConnectionUtils.js"></script>
-    <script src="./js/node.js"></script>
-    <script src="./js/graph.js"></script>
-    <script src="./js/component.js"></script>
-    <script src="js/group.js"></script>
-    <script src="js/save_manager.js"></script>
+    <script src="./dist/ConnectionUtils.js"></script>
+    <script src="./dist/node.js"></script>
+    <script src="./dist/graph.js"></script>
+    <script src="./dist/component.js"></script>
+    <script src="./dist/group.js"></script>
+    <script src="./dist/save_manager.js"></script>
 
     <script>
         GraphManager.init();
@@ -36,7 +49,6 @@
         config1.setType("基础节点", "游戏设计动机");
         config1.setSize("500px", "500px");
         config1.setProcessFunction((node) => {
-            // 设置输出端口的数据
             node.setOutputPortData(0, "0号节点");
             node.setOutputPortData(1, '1号节点');
             node.setOutputPortData(2, '2号节点');
@@ -50,18 +62,14 @@
         config1.addOutputPort("3");
         var node1 = new Node(100, 100, config1);
 
-
         let config2 = new NodeConfig();
-        config2.setType("基础节点","游戏设计体验");
-        config2.setSize("500px","500px");
-        config2.setProcessFunction((node)=>{
+        config2.setType("基础节点", "游戏设计体验");
+        config2.setSize("500px", "500px");
+        config2.setProcessFunction((node) => {
             const inputDataArray = node.getInputPortData(0);
-                console.log("inputDataArray", inputDataArray);
-
-                // // 处理并显示数据（例如，显示所有输入）
-                const result = inputDataArray.join('，');
-                document.getElementById("proposalContent").innerHTML = result;
-                document.getElementById("proposal").style.display = "block";
+            const result = inputDataArray.join('，');
+            document.getElementById("proposalContent").innerHTML = result;
+            document.getElementById("proposal").style.display = "block";
         });
         config2.addComponent(new TitleComponent("标题"));
         config2.addComponent(new TitleComponent("标题2"));
@@ -91,6 +99,22 @@
         }
 
         updateFPS();
+
+        // 运行时间显示
+        let startTime = Date.now();
+
+        function updateRuntime() {
+            const now = Date.now();
+            const elapsedTime = now - startTime;
+            const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
+            const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+            const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('runtimeDisplay').textContent = `运行时间: ${formattedTime}`;
+        }
+
+        setInterval(updateRuntime, 1000);
     </script>
 </body>
 
