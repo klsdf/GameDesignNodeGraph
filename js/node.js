@@ -82,23 +82,24 @@ class Port {
      * 创建新端口
      * @param {Node} node - 端口所属的节点
      * @param {number} index - 端口在节点中的索引
-     * @param {string} type - 端口类型，'input'表示输入端口，'output'表示输出端口
+     * @param {string} type - 端口类型
+     * @param {HTMLElement} element - 端口DOM元素
      */
-    constructor(node, index, type) {
+    constructor(node, index, type, data,element) {
         /** @type {Node} 端口所属节点 */
         this.node = node;
-        
+
         /** @type {number} 端口索引 */
         this.index = index;
-        
+
         /** @type {string} 端口类型 */
         this.type = type;
 
         /** @type {Array} 端口数据 */
-        this.data = [];
-        
+        this.data = data;
+
         /** @type {HTMLElement} 端口DOM元素 */
-        this.element = null;
+        this.element = element;
     }
 }
 
@@ -144,6 +145,13 @@ class Node {
         /** @type {Array<HTMLElement>} 输入端口列表 */
         this.inputPorts = [];
 
+
+        /** @type {Array<Port>} 输入端口列表 */
+        this.inputPortsPlus = [];
+
+        /** @type {Array<Port>} 输入端口列表 */
+        this.outputPortsPlus = [];
+
         /** @type {Array<HTMLElement>} 输出端口列表 */
         this.outputPorts = [];
 
@@ -175,23 +183,120 @@ class Node {
 
         this.group = null;
 
-        // 修改：初始化输入和输出端口数据数组
+        this.updatePorts();
+
+    }
+    // #endregion
+
+
+    // #region 端口相关
+    /**
+     * 更新端口数据
+     */
+    updatePorts() {
+        // 处理输入端口
+        for (let i = 0; i < this.nodeConfig.inputPorts.length; i++) {
+            let portType = this.nodeConfig.inputPorts[i].type;
+            // let element = this.createInputElement(portType);
+            let newport = new Port(this, i, portType, [], null);
+            this.inputPortsPlus.push(newport);
+        }
+
+        // 处理输出端口
+        for (let i = 0; i < this.nodeConfig.outputPorts.length; i++) {
+            let portType = this.nodeConfig.outputPorts[i].type;
+            let newport = new Port(this, i, portType, null, null);
+            this.outputPortsPlus.push(newport);
+        }
+
+     
+
+        // 初始化输入端口的每一个元素为数组
         this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
+        // 初始化输出端口数据为unull
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
 
         // 实例化输入端口
         this.nodeConfig.inputPorts.forEach(portConfig => {
-            this.addInput(portConfig.type);
+            let inputPort = this.createInputElement(portConfig.type);
+            this.documentElement.appendChild(inputPort);
         });
 
         // 实例化输出端口
         this.nodeConfig.outputPorts.forEach(portConfig => {
-            this.addOutput(portConfig.type);
+            let outputPort = this.createOutputElement(portConfig.type);
+            this.documentElement.appendChild(outputPort);
         });
         this.setupPortEvents();
 
     }
+
+    /**
+     * 创建输入端口元素
+     * @param {string} type - 端口类型
+     * @returns {HTMLElement} 创建的输入端口元素
+     */
+    createInputElement(type = '无') {
+        const inputPort = document.createElement('div');
+        inputPort.className = 'port input-port';
+        this.inputPorts.push(inputPort);
+        this.inputPortsData.push([]); // 初始化为空数组
+     
+
+        // 显示类型标签
+        if (type) {
+            const typeLabel = document.createElement('span');
+            typeLabel.className = 'left-port-type-label';
+            typeLabel.textContent = type;
+            inputPort.appendChild(typeLabel);
+        }
+
+        this.updatePortPositions();
+        this.setupPortEvents();
+        return inputPort;
+    }
+
+    /**
+     * 创建输出端口元素
+     * @param {string} type - 端口类型
+     * @returns {HTMLElement} 创建的输出端口元素
+     */
+    createOutputElement(type = '无') {
+        const outputPort = document.createElement('div');
+        outputPort.className = 'port output-port';
+        this.outputPorts.push(outputPort);
+        this.outputPortsData.push(null);
+        // this.documentElement.appendChild(outputPort);
+
+        // 显示类型标签
+        if (type) {
+            const typeLabel = document.createElement('span');
+            typeLabel.className = 'right-port-type-label';
+            typeLabel.textContent = type;
+            outputPort.appendChild(typeLabel);
+        }
+
+        this.updatePortPositions();
+        this.setupPortEvents();
+        return outputPort;
+    }
+
+
     // #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /*
     * 添加节点拖拽的控制
@@ -202,6 +307,8 @@ class Node {
         this.documentElement.appendChild(resizeHandle);
         this.initializeResize(resizeHandle);
     }
+
+
 
     /**
      * 添加运行按钮到节点
@@ -774,47 +881,7 @@ class Node {
 
 
 
-    // 修改：添加输入端口方法，增加类型参数
-    addInput(type = '无') {
-        const inputPort = document.createElement('div');
-        inputPort.className = 'port input-port';
-        this.inputPorts.push(inputPort);
-        this.inputPortsData.push([]); // 初始化为空数组
-        this.documentElement.appendChild(inputPort);
 
-        // 显示类型标签
-        if (type) {
-            const typeLabel = document.createElement('span');
-            typeLabel.className = 'left-port-type-label';
-            typeLabel.textContent = type;
-            inputPort.appendChild(typeLabel);
-        }
-
-        this.updatePortPositions();
-        this.setupPortEvents();
-        return inputPort;
-    }
-
-    // 修改：添加输出端口方法，增加类型参数
-    addOutput(type = '无') {
-        const outputPort = document.createElement('div');
-        outputPort.className = 'port output-port';
-        this.outputPorts.push(outputPort);
-        this.outputPortsData.push(null);
-        this.documentElement.appendChild(outputPort);
-
-        // 显示类型标签
-        if (type) {
-            const typeLabel = document.createElement('span');
-            typeLabel.className = 'right-port-type-label';
-            typeLabel.textContent = type;
-            outputPort.appendChild(typeLabel);
-        }
-
-        this.updatePortPositions();
-        this.setupPortEvents();
-        return outputPort;
-    }
 
     // 修改：获取输入端口数据的方法
     getInputPortData(index) {
