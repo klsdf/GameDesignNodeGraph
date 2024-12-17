@@ -67,6 +67,8 @@
 - [ ] ai思维梳理，可以对策划案的整体内容进行评论和建议
 - [ ] ai节点生成。ai可以根据上下文对话的内容自动创建节点并连接。快速帮你完成一些具体的设计细节
 
+
+
 ### 趣味的个性化样式！
 
 - [ ] 背景图切换
@@ -76,7 +78,6 @@
 - [ ] 运行音效
 - [ ] 节点错误音效
 - [ ] 白噪音和轻音乐的bgm
-- [ ] 
 
 
 
@@ -88,7 +89,9 @@
 
 ###  游戏化体验！
 
-- [ ] 工作时长记录，并且保存的节点图会带上这个数据。
+- [x] 工作时长记录
+  - [ ] 并且保存的节点图会带上这个数据。
+
 - [ ] 成就系统！
 - [ ] 新手引导！
 
@@ -143,19 +146,20 @@
 
 | 方法名 | 说明 | 参数 | 返回值 | 使用示例 |
 |--------|------|------|--------|----------|
-| registerNode(node) | 注册新的节点类型 | node: Node - 节点实例 | void | `NodeManager.registerNode(new Node(...));` |
+| registerNode(nodeConfig) | 注册新的节点类型 | nodeConfig: NodeConfig - 节点配置实例 | void | `NodeManager.registerNode(nodeConfig);` |
 | updateNodeList() | 更新节点列表显示 | 无 | void | `NodeManager.updateNodeList();` |
+| getNodeConfig(parentType, type) | 获取节点配置 | parentType: string - 父类型<br>type: string - 节点类型 | NodeConfig | `NodeManager.getNodeConfig('基础节点', '输入节点');` |
 
-## Node
+## GraphNode
 
 节点类的实例方法：
 
 | 方法名 | 说明 | 参数 | 返回值 | 使用示例 |
 |--------|------|------|--------|----------|
-| constructor(x, y, config) | 创建新节点 | x: number - X坐标<br>y: number - Y坐标<br>config: NodeConfig - 节点配置 | Node | `new Node(100, 100, config);` |
+| constructor(x, y, config) | 创建新节点 | x: number - X坐标<br>y: number - Y坐标<br>config: NodeConfig - 节点配置 | GraphNode | `new GraphNode(100, 100, config);` |
 | addInput() | 添加输入端口 | 无 | HTMLElement | `node.addInput();` |
 | addOutput() | 添加输出端口 | 无 | HTMLElement | `node.addOutput();` |
-| connectTo(fromPort, toNode, toPort) | 连接到其他节点 | fromPort: number - 输出端口索引<br>toNode: Node - 目标节点<br>toPort: number - 目标输入端口索引 | void | `node1.connectTo(0, node2, 0);` |
+| connectTo(fromPort, toNode, toPort) | 连接到其他节点 | fromPort: number - 输出端口索引<br>toNode: GraphNode - 目标节点<br>toPort: number - 目标输入端口索引 | void | `node1.connectTo(0, node2, 0);` |
 | setOutputPortData(index, data) | 设置输出端口数据 | index: number - 端口索引<br>data: any - 要传输的数据 | void | `node.setOutputPortData(0, "data");` |
 | getInputPortData(index) | 获取输入端口数据 | index: number - 端口索引 | Array | `const data = node.getInputPortData(0);` |
 | run() | 运行节点处理函数 | 无 | Promise<void> | `await node.run();` |
@@ -167,8 +171,8 @@
 | 方法名 | 说明 | 参数 | 返回值 | 使用示例 |
 |--------|------|------|--------|----------|
 | constructor(x, y, width, height) | 创建新分组 | x: number - X坐标<br>y: number - Y坐标<br>width: number - 宽度<br>height: number - 高度 | Group | `new Group(100, 100, 300, 200);` |
-| addNode(node) | 添加节点到分组 | node: Node - 要添加的节点 | void | `group.addNode(node);` |
-| removeNode(node) | 从分组移除节点 | node: Node - 要移除的节点 | void | `group.removeNode(node);` |
+| addNode(node) | 添加节点到分组 | node: GraphNode - 要添加的节点 | void | `group.addNode(node);` |
+| removeNode(node) | 从分组移除节点 | node: GraphNode - 要移除的节点 | void | `group.removeNode(node);` |
 | delete() | 删除分组 | 无 | void | `group.delete();` |
 
 ## SaveManager
@@ -189,6 +193,12 @@
 | 方法名 | 说明 | 参数 | 返回值 | 使用示例 |
 |--------|------|------|--------|----------|
 | constructor(parentType, type, processFunction) | 创建节点配置 | parentType: string - 父类型<br>type: string - 节点类型<br>processFunction: Function - 处理函数 | NodeConfig | `new NodeConfig('基础节点', '输入节点', fn);` |
+| addComponent(component) | 添加组件到节点配置 | component: Component - 要添加的组件 | void | `config.addComponent(new TitleComponent("标题"));` |
+| setType(parentType, type) | 设置节点类型 | parentType: string - 父类型<br>type: string - 节点类型 | void | `config.setType('基础节点', '输入节点');` |
+| setSize(width, height) | 设置节点尺寸 | width: string - 宽度<br>height: string - 高度 | void | `config.setSize('300px', '400px');` |
+| setProcessFunction(processFunction) | 设置处理函数 | processFunction: Function - 处理函数 | void | `config.setProcessFunction(fn);` |
+| addInputPort(type) | 添加输入端口 | type: string - 端口类型 | void | `config.addInputPort('数据');` |
+| addOutputPort(type) | 添加输出端口 | type: string - 端口类型 | void | `config.addOutputPort('结果');` |
 
 ## ConnectionUtils
 
@@ -196,5 +206,6 @@
 
 | 方法名 | 说明 | 参数 | 返回值 | 使用示例 |
 |--------|------|------|--------|----------|
-| createConnection(fromPort, toPort) | 创建连接 | fromPort: HTMLElement - 起始端口<br>toPort: HTMLElement - 目标端口 | Object | `ConnectionUtils.createConnection(port1, port2);` |
-| updateConnection(conn, x1, y1, x2, y2) | 更新连接位置 | conn: SVGElement - 连接元素<br>x1,y1: number - 起点坐标<br>x2,y2: number - 终点坐标 | void | `ConnectionUtils.updateConnection(conn, 0, 0, 100, 100);` |
+| drawConnection() | 绘制连接线 | 无 | SVGElement | `const connection = ConnectionUtils.drawConnection();` |
+| updateConnection(connection, startX, startY, endX, endY, curvature) | 更新连接线的路径 | connection: SVGElement - 连接线元素<br>startX, startY: number - 起始坐标<br>endX, endY: number - 结束坐标<br>curvature: number - 曲线弯曲程度 | void | `ConnectionUtils.updateConnection(conn, 0, 0, 100, 100, 0.5);` |
+| setStyle(connection, style) | 设置连接线样式 | connection: SVGElement - 连接线元素<br>style: Record<string, string> - 样式对象 | void | `ConnectionUtils.setStyle(conn, { stroke: '#fff' });` |
