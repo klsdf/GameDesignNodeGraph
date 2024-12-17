@@ -24,9 +24,15 @@ class GraphManager {
             const x = (e.clientX - rect.left) / scale;
             const y = (e.clientY - rect.top) / scale;
             // 创建新节点
-            const nodeType = new NodeType(nodeTypeData.parentType, nodeTypeData.type, nodeTypeData.input, nodeTypeData.output);
-            const node = new Node(x, y, nodeType);
-            NodeManager.registerNode(node);
+            // const nodeConfig = new NodeConfig(
+            //     nodeTypeData.parentType,
+            //     nodeTypeData.type,
+            //     nodeTypeData.input,
+            //     nodeTypeData.output
+            // );
+            const nodeConfig = NodeManager.getNodeConfig("基础节点", "游戏设计动机");
+            new GraphNode(x, y, nodeConfig);
+            // NodeManager.registerNode(nodeConfig);
         });
     }
     /**
@@ -111,7 +117,7 @@ class GraphManager {
     }
     /**
      * 打开右键菜单
-     * @param {Event} event
+     * @param {MouseEvent} event - 鼠标事件对象
      */
     static openContextMenu(event) {
         event.preventDefault();
@@ -146,11 +152,7 @@ class GraphManager {
         }
         // 限制缩放范围
         this.zoom = Math.max(this.zoom_min, Math.min(this.zoom_max, zoomvalue));
-        // console.log("zoom", this.zoom);
-        // 更新画布transform
-        // this.updateTransform();
         this.zoom_refresh();
-        // }
     }
     /**
      * 刷新缩放
@@ -175,7 +177,7 @@ class GraphManager {
         this.container.style.left = '0px';
         this.container.style.top = '0px';
         // 重绘连线
-        drawAllConnections();
+        // drawAllConnections();
     }
     static ChangeBackgroundColor(color) {
         this.container.style.backgroundColor = color;
@@ -492,7 +494,7 @@ class GraphManager {
         if (importBtn) {
             importBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                importInput === null || importInput === void 0 ? void 0 : importInput.click();
+                importInput?.click();
             });
         }
         if (importInput) {
@@ -516,17 +518,6 @@ class GraphManager {
                 }
             });
         }
-        // // 点击空白处关闭菜单
-        // document.addEventListener('click', (e) => {
-        //     if (!e.target.closest('.menu') && !e.target.closest('#nav-bar')) {
-        //         document.querySelectorAll('.menu').forEach(menu => {
-        //             menu.style.display = 'none';
-        //         });
-        //         document.querySelectorAll('#nav-bar button').forEach(button => {
-        //             button.classList.remove('active');
-        //         });
-        //     }
-        // });
     }
     /**
      * 切换菜单显示状态
@@ -541,11 +532,11 @@ class GraphManager {
         console.log('Button element:', button);
         if (menu.style.display === 'block') {
             menu.style.display = 'none';
-            button === null || button === void 0 ? void 0 : button.classList.remove('active');
+            button?.classList.remove('active');
         }
         else {
             menu.style.display = 'block';
-            button === null || button === void 0 ? void 0 : button.classList.add('active');
+            button?.classList.add('active');
         }
     }
     /**
@@ -599,7 +590,6 @@ class GraphManager {
     }
 }
 _a = GraphManager;
-GraphManager.container = null;
 GraphManager.canvas_x = 0;
 GraphManager.canvas_y = 0;
 // 缩放

@@ -3,35 +3,38 @@
  * 负责管理和注册所有节点类型，以及更新节点列表显示
  */
 class NodeManager {
-    /**
-     * 节点配置映射表
-     * @type {Object.<string, Array<{type: string, processFunction: Function}>>}
-     */
-    static nodes = {};
+    static registeredNodeConfigs :Array<NodeConfig> = [];
 
     /**
      * 注册新的节点类型
-     * @param {GraphNode} node - 要注册的节点实例
+     * @param {NodeConfig} nodeConfig - 要注册的节点配置实例
      * @throws {Error} 如果节点类型已存在于同一父类型中
      */
-    static registerNode(node:GraphNode) {
-        if (!NodeManager.nodes[node.nodeConfig.parentType]) {
-            NodeManager.nodes[node.nodeConfig.parentType] = [];
+    static registerNode(nodeConfig: NodeConfig): void {
+        if (!NodeManager.registeredNodeConfigs[nodeConfig.parentType]) {
+            NodeManager.registeredNodeConfigs[nodeConfig.parentType] = [];
         }
         // 检查是否已存在相同类型的节点
-        const existingNode = NodeManager.nodes[node.nodeConfig.parentType].find(
-            node => node.type === node.nodeConfig.type
+        const existingNodeConfig = NodeManager.registeredNodeConfigs[nodeConfig.parentType].find(
+            config => config.type === nodeConfig.type
         );
-        console.log("existingNode", existingNode);
-        if (existingNode) {
-            throw new Error(`节点类型 '${node.nodeConfig.type}' 已存在于 '${node.nodeConfig.parentType}' 分类中`);
+        console.log("existingNodeConfig", existingNodeConfig);
+        if (existingNodeConfig) {
+            throw new Error(`节点类型 '${nodeConfig.type}' 已存在于 '${nodeConfig.parentType}' 分类中`);
         }
-        NodeManager.nodes[node.nodeConfig.parentType].push({
-            type: node.nodeConfig.type,
-            processFunction: node.nodeConfig.processFunction
+        NodeManager.registeredNodeConfigs[nodeConfig.parentType].push({
+            type: nodeConfig.type,
+            processFunction: nodeConfig.processFunction
         });
         NodeManager.updateNodeList();
     }
+
+
+
+    static getNodeConfig(parentType:string, type:string):NodeConfig {
+        return NodeManager.registeredNodeConfigs[parentType].find(config => config.type === type);
+    }
+
 
     /**
      * 更新首页的节点列表显示
@@ -39,10 +42,14 @@ class NodeManager {
      */
     static updateNodeList() {
         const container = document.getElementById('node-list-container');
+        if (container===null) {
+            console.error("NodeManager.updateNodeList: container is null");
+            return;
+        }
         container.innerHTML = ''; // 清空现有列表
 
         // 遍历所有注册的节点类型
-        Object.entries(NodeManager.nodes).forEach(([parentType, nodeTypes]) => {
+        Object.entries(NodeManager.registeredNodeConfigs).forEach(([parentType, nodeTypes]) => {
             // 创建父类型标题
             const parentTitle = document.createElement('div');
             parentTitle.className = 'node-list-category';
@@ -155,7 +162,7 @@ class GraphNode {
      *   }
      * ]
      */
-    connections:Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>;
+    connections:Array<ConnectionInfo>;
 
     /** @type {Array<Port>} 输入端口列表 */
     inputPortsPlus:Array<Port>;
@@ -543,7 +550,7 @@ class GraphNode {
     // }
 
     // 设置节点拖拽
-    setupNodeDrag(e) {
+    setupNodeDrag(e: MouseEvent) {
         if (!e || typeof e.button === 'undefined') {
             console.error('传入的件对象无效');
             return;
@@ -561,7 +568,7 @@ class GraphNode {
         const initialX = e.clientX / scale - this.documentElement.offsetLeft;
         const initialY = e.clientY / scale - this.documentElement.offsetTop;
 
-        const moveNode = (e) => {
+        const moveNode = (e: MouseEvent) => {
             // 计算新的节点位置，考虑缩放比例
             const newX = (e.clientX / scale - initialX);
             const newY = (e.clientY / scale - initialY);
@@ -573,7 +580,7 @@ class GraphNode {
             this.updateAllConnections();
         };
 
-        const stopMoveNode = (e) => {
+        const stopMoveNode = (e: MouseEvent) => {
             // 如果节点当前不在组内，检查是否拖入了组
             if (!this.group) {
                 const groups = document.querySelectorAll('.group');
@@ -707,7 +714,7 @@ class GraphNode {
     /**
      * 开始绘制鼠标拖拽形成的临时连接
      */
-    startDrawingConnection(e) {
+    startDrawingConnection(e: MouseEvent) {
         const connection = ConnectionUtils.drawConnection();
         const svg = ConnectionUtils.getSvgContainer();
         svg.appendChild(connection);
@@ -716,7 +723,7 @@ class GraphNode {
         const startX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
         const startY = (e.clientY - GraphManager.container.getBoundingClientRect().top) / scale;
 
-        const updateLine = (e) => {
+        const updateLine = (e: MouseEvent) => {
             const endX = (e.clientX - GraphManager.container.getBoundingClientRect().left) / scale;
             const endY = (e.clientY - GraphManager.container.getBoundingClientRect().top) / scale;
             const lineCurve = ConnectionUtils.createCurvature(startX, startY, endX, endY, 0.5);
@@ -755,13 +762,6 @@ class GraphNode {
 
         // 使用 ConnectionUtils 创建连线
         const connection = ConnectionUtils.drawConnection();
-
-        // 存储连接信息
-        // const connectionInfo = {
-        //     from: fromPort,
-        //     to: toPort,
-        //     path: connection
-        // };
         const connectionInfo: ConnectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
 
         this.connections.push(connectionInfo);
@@ -769,14 +769,6 @@ class GraphNode {
 
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
-
-        // // 设置样式
-        // ConnectionUtils.setStyle(connection, {
-        //     stroke: '#fff',
-        //     strokeWidth: '5',
-        //     strokeDasharray: '10, 10',
-
-        // });
     }
 
 
@@ -784,7 +776,7 @@ class GraphNode {
      * 更新连接线的位置
      * @param {ConnectionInfo} connectionInfo - 连接信息对象
      */
-    updatePortConnection(connectionInfo) {
+    updatePortConnection(connectionInfo: ConnectionInfo) {
         const scale = GraphManager.zoom;
         const fromRect = connectionInfo.from.getBoundingClientRect();
         const toRect = connectionInfo.to.getBoundingClientRect();
@@ -805,12 +797,12 @@ class GraphNode {
 
     // 初始化节点大小调整
 
-    initializeResize(resizeHandle) {
-        let isResizing = false;
-        let originalWidth = this.documentElement.offsetWidth;
-        let originalHeight = this.documentElement.offsetHeight;
-        let originalX = this.documentElement.offsetLeft;
-        let originalY = this.documentElement.offsetTop;
+    initializeResize(resizeHandle: HTMLElement) {
+        let isResizing: boolean = false;
+        let originalWidth: number = this.documentElement.offsetWidth;
+        let originalHeight: number = this.documentElement.offsetHeight;
+        let originalX: number = this.documentElement.offsetLeft;
+        let originalY: number = this.documentElement.offsetTop;
 
         resizeHandle.addEventListener('mousedown', (e) => {
             isResizing = true;
@@ -858,7 +850,7 @@ class GraphNode {
         let startIsOutput: boolean = false;
         let isDrawing: boolean = false;        // 是否正在绘制连接
 
-        const addPortEvents = (port, isOutput) => {
+        const addPortEvents = (port: HTMLElement, isOutput: boolean) => {
             port.addEventListener('mousedown', (e) => {
                 e.stopPropagation(); // 防止与节点拖动冲突
                 startPort = port;
@@ -954,7 +946,7 @@ class GraphNode {
     }
 
     // 修改：设置输出端口数据的方法
-    setOutputPortData(index, data) {
+    setOutputPortData(index:number, data:any) {
         if (index < 0 || index >= this.outputPorts.length) {
             console.warn(`Invalid output port index: ${index}`);
             return;

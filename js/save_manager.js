@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 /**
  * 保存管理器类
  * 负责管理流程图的保存、加载和导出功能
@@ -151,17 +142,15 @@ class SaveManager {
      * @param {File} file - 要导入的JSON文件
      * @returns {Promise<void>}
      */
-    static importFromFile(file) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const text = yield file.text();
-                const state = JSON.parse(text);
-                this.loadState(state);
-            }
-            catch (error) {
-                console.error('Error importing file:', error);
-                throw error;
-            }
-        });
+    static async importFromFile(file) {
+        try {
+            const text = await file.text();
+            const state = JSON.parse(text);
+            this.loadState(state);
+        }
+        catch (error) {
+            console.error('Error importing file:', error);
+            throw error;
+        }
     }
 }

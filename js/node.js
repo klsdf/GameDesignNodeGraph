@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 /**
  * 节点管理器类
  * 负责管理和注册所有节点类型，以及更新节点列表显示
@@ -15,24 +6,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 class NodeManager {
     /**
      * 注册新的节点类型
-     * @param {GraphNode} node - 要注册的节点实例
+     * @param {NodeConfig} nodeConfig - 要注册的节点配置实例
      * @throws {Error} 如果节点类型已存在于同一父类型中
      */
-    static registerNode(node) {
-        if (!NodeManager.nodes[node.nodeConfig.parentType]) {
-            NodeManager.nodes[node.nodeConfig.parentType] = [];
+    static registerNode(nodeConfig) {
+        if (!NodeManager.registeredNodeConfigs[nodeConfig.parentType]) {
+            NodeManager.registeredNodeConfigs[nodeConfig.parentType] = [];
         }
         // 检查是否已存在相同类型的节点
-        const existingNode = NodeManager.nodes[node.nodeConfig.parentType].find(node => node.type === node.nodeConfig.type);
-        console.log("existingNode", existingNode);
-        if (existingNode) {
-            throw new Error(`节点类型 '${node.nodeConfig.type}' 已存在于 '${node.nodeConfig.parentType}' 分类中`);
+        const existingNodeConfig = NodeManager.registeredNodeConfigs[nodeConfig.parentType].find(config => config.type === nodeConfig.type);
+        console.log("existingNodeConfig", existingNodeConfig);
+        if (existingNodeConfig) {
+            throw new Error(`节点类型 '${nodeConfig.type}' 已存在于 '${nodeConfig.parentType}' 分类中`);
         }
-        NodeManager.nodes[node.nodeConfig.parentType].push({
-            type: node.nodeConfig.type,
-            processFunction: node.nodeConfig.processFunction
+        NodeManager.registeredNodeConfigs[nodeConfig.parentType].push({
+            type: nodeConfig.type,
+            processFunction: nodeConfig.processFunction
         });
         NodeManager.updateNodeList();
+    }
+    static getNodeConfig(parentType, type) {
+        return NodeManager.registeredNodeConfigs[parentType].find(config => config.type === type);
     }
     /**
      * 更新首页的节点列表显示
@@ -40,9 +34,13 @@ class NodeManager {
      */
     static updateNodeList() {
         const container = document.getElementById('node-list-container');
+        if (container === null) {
+            console.error("NodeManager.updateNodeList: container is null");
+            return;
+        }
         container.innerHTML = ''; // 清空现有列表
         // 遍历所有注册的节点类型
-        Object.entries(NodeManager.nodes).forEach(([parentType, nodeTypes]) => {
+        Object.entries(NodeManager.registeredNodeConfigs).forEach(([parentType, nodeTypes]) => {
             // 创建父类型标题
             const parentTitle = document.createElement('div');
             parentTitle.className = 'node-list-category';
@@ -68,11 +66,7 @@ class NodeManager {
         });
     }
 }
-/**
- * 节点配置映射表
- * @type {Object.<string, Array<{type: string, processFunction: Function}>>}
- */
-NodeManager.nodes = {};
+NodeManager.registeredNodeConfigs = [];
 /**
  * 端口类
  * 表示节点上的输入输出端口，包含端口所属节点、索引和类型信息
@@ -112,7 +106,6 @@ class GraphNode {
      * @param {NodeConfig} nodeConfig - 节点配置对象
      */
     constructor(x, y, nodeConfig) {
-        var _a;
         /** @type {Array<Array<any>>} 输入端口数据列表 */
         this.inputPortsData = [];
         /** @type {Array<any>} 输出端口数据列表 */
@@ -144,7 +137,7 @@ class GraphNode {
         this.documentElement.style.width = nodeConfig.width;
         this.documentElement.style.height = nodeConfig.height;
         this.initEvents();
-        (_a = GraphManager.container) === null || _a === void 0 ? void 0 : _a.appendChild(this.documentElement);
+        GraphManager.container?.appendChild(this.documentElement);
         this.addResizeHandle();
         // 添加数据相关的属性
         // this.data = null;  // 节点的数据
@@ -263,69 +256,65 @@ class GraphNode {
      * 运行节点的数据处理
      * @async
      */
-    run() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.documentElement.classList.add('processing');
-            try {
-                // 在处理数据前清空当前节点的输入和输出数据
-                this.clearData();
-                // 获取所有输入连接，并按端口索引分组
-                const incomingConnections = this.getIncomingConnections();
-                // 使用 Set 来存储每个端口的唯一数据
-                const portDataMap = new Map();
-                incomingConnections.forEach(conn => {
-                    const toPortIndex = this.inputPorts.indexOf(conn.to);
-                    const sourceNode = conn.from.parentNode.node;
-                    const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
-                    const outputData = sourceNode.outputPortsData[fromPortIndex];
-                    if (!portDataMap.has(toPortIndex)) {
-                        portDataMap.set(toPortIndex, new Set());
-                    }
-                    if (outputData !== null) {
-                        portDataMap.get(toPortIndex).add(outputData);
-                    }
-                });
-                // 将 Set 转换回数组并保存到 inputPortsData
-                for (const [portIndex, dataSet] of portDataMap) {
-                    this.inputPortsData[portIndex] = Array.from(dataSet);
+    async run() {
+        this.documentElement.classList.add('processing');
+        try {
+            // 在处理数据前清空当前节点的输入和输出数据
+            this.clearData();
+            // 获取所有输入连接，并按端口索引分组
+            const incomingConnections = this.getIncomingConnections();
+            // 使用 Set 来存储每个端口的唯一数据
+            const portDataMap = new Map();
+            incomingConnections.forEach(conn => {
+                const toPortIndex = this.inputPorts.indexOf(conn.to);
+                const sourceNode = conn.from.parentNode.node;
+                const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
+                const outputData = sourceNode.outputPortsData[fromPortIndex];
+                if (!portDataMap.has(toPortIndex)) {
+                    portDataMap.set(toPortIndex, new Set());
                 }
-                // 处理当前节点的数据
-                yield this.processData();
-                // 运行下游节点
-                const outgoingConnections = this.getOutgoingConnections();
-                const processedNodes = new Set(); // 用于跟踪已处理的节点
-                for (const conn of outgoingConnections) {
-                    const targetNode = conn.to.parentNode.node;
-                    if (!processedNodes.has(targetNode)) {
-                        processedNodes.add(targetNode);
-                        yield targetNode.run();
-                    }
+                if (outputData !== null) {
+                    portDataMap.get(toPortIndex).add(outputData);
                 }
-                this.documentElement.classList.remove('processing');
-                this.documentElement.classList.add('processed');
-                setTimeout(() => {
-                    this.documentElement.classList.remove('processed');
-                }, 500);
+            });
+            // 将 Set 转换回数组并保存到 inputPortsData
+            for (const [portIndex, dataSet] of portDataMap) {
+                this.inputPortsData[portIndex] = Array.from(dataSet);
             }
-            catch (error) {
-                console.error('节点处理出错:', error);
-                this.documentElement.classList.remove('processing');
-                this.documentElement.classList.add('error');
-                setTimeout(() => {
-                    this.documentElement.classList.remove('error');
-                }, 2000);
+            // 处理当前节点的数据
+            await this.processData();
+            // 运行下游节点
+            const outgoingConnections = this.getOutgoingConnections();
+            const processedNodes = new Set(); // 用于跟踪已处理的节点
+            for (const conn of outgoingConnections) {
+                const targetNode = conn.to.parentNode.node;
+                if (!processedNodes.has(targetNode)) {
+                    processedNodes.add(targetNode);
+                    await targetNode.run();
+                }
             }
-        });
+            this.documentElement.classList.remove('processing');
+            this.documentElement.classList.add('processed');
+            setTimeout(() => {
+                this.documentElement.classList.remove('processed');
+            }, 500);
+        }
+        catch (error) {
+            console.error('节点处理出错:', error);
+            this.documentElement.classList.remove('processing');
+            this.documentElement.classList.add('error');
+            setTimeout(() => {
+                this.documentElement.classList.remove('error');
+            }, 2000);
+        }
     }
     /**
      * 处理节点数据
      * @async
      */
-    processData() {
-        return __awaiter(this, void 0, void 0, function* () {
-            // 使用节点配置定义的处理函数
-            yield this.nodeConfig.processFunction(this);
-        });
+    async processData() {
+        // 使用节点配置定义的处理函数
+        await this.nodeConfig.processFunction(this);
     }
     // 重置节点状态
     reset() {
@@ -573,23 +562,11 @@ class GraphNode {
         const toPort = targetNode.inputPorts[toPortIndex];
         // 使用 ConnectionUtils 创建连线
         const connection = ConnectionUtils.drawConnection();
-        // 存储连接信息
-        // const connectionInfo = {
-        //     from: fromPort,
-        //     to: toPort,
-        //     path: connection
-        // };
         const connectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
         this.connections.push(connectionInfo);
         targetNode.connections.push(connectionInfo);
         // 更新连线位置
         this.updatePortConnection(connectionInfo);
-        // // 设置样式
-        // ConnectionUtils.setStyle(connection, {
-        //     stroke: '#fff',
-        //     strokeWidth: '5',
-        //     strokeDasharray: '10, 10',
-        // });
     }
     /**
      * 更新连接线的位置

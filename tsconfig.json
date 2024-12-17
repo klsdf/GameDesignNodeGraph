@@ -1,10 +1,34 @@
 {
     "compilerOptions": {
-      "target": "es6",        // 编译后的 JavaScript版本
-      "module": "commonjs",   // 使用的模块系统
-      "outDir": "./js",     // 输出目录
-      "rootDir": "./ts",      // 修改为实际的源文件目录
-      "strict": true          // 启用所有严格类型检查选项
+      // 编译后的 JavaScript 版本
+      // 可选值: "es3", "es5", "es6"/"es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext"
+      "target": "es2020",        
+      
+      // 使用的模块系统
+      // 可选值: "none", "commonjs", "amd", "umd", "system", "es6"/"es2015", "es2020", "esnext"
+      "module": "commonjs",   
+      
+      // 编译输出目录
+      "outDir": "./js",     
+      
+      // TypeScript 源文件目录
+      "rootDir": "./ts",      
+      
+      // 启用所有严格类型检查选项
+      // 包含: noImplicitAny, noImplicitThis, alwaysStrict, strictBindCallApply,
+      // strictNullChecks, strictFunctionTypes, strictPropertyInitialization
+      "strict": true,         
+      
+      // 编译需要包含的库文件
+      // 可选值: "es5", "es6", "es2015", "es7", "es2016", "es2017", "es2018", "es2019", "es2020",
+      // "esnext", "dom", "dom.iterable", "webworker", "webworker.importscripts", "scripthost" 等
+      "lib": ["es2017", "dom"]
     },
-    "include": ["ts/*"]       // 包含的文件
+    
+    // 需要编译的文件匹配模式
+    // 可以使用通配符: 
+    // * 匹配0或多个字符(不包括目录分隔符)
+    // ? 匹配一个任意字符(不包括目录分隔符)
+    // **/ 递归匹配任意子目录
+    "include": ["ts/*"]
 }

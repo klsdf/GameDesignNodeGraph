@@ -7,8 +7,8 @@ class Group {
     /** @type {string} 组的唯一标识符 */
     id: string;
 
-    /** @type {Set<Node>} 存储组内的节点集合 */
-    nodes: Set<Node>;
+    /** @type {Set<GraphNode>} 存储组内的节点集合 */
+    nodes: Set<GraphNode>;
 
     /** @type {HTMLElement & { group?: Group }} 组的DOM元素 */
     element: HTMLElement & { group?: Group };
@@ -153,9 +153,9 @@ class Group {
 
     /**
      * 添加节点到组中
-     * @param {Node} node - 要添加的节点
+     * @param {GraphNode} node - 要添加的节点
      */
-    addNode(node) {
+    addNode(node:GraphNode) {
         if (node && node.documentElement) {
             this.nodes.add(node); // 将节点添加到组中
             node.group = this; // 设置节点的组属性
@@ -167,9 +167,9 @@ class Group {
 
     /**
      * 从组中移除节点
-     * @param {Node} node - 要移除的节点
+     * @param {GraphNode} node - 要移除的节点
      */
-    removeNode(node) {
+    removeNode(node:GraphNode) {
         this.nodes.delete(node);
         node.group = null;
     }
@@ -180,7 +180,7 @@ class Group {
      * @param {number} y - 检查的Y坐标
      * @returns {boolean} 如果坐标在组内返回true，否则返回false
      */
-    containsPoint(x, y) {
+    containsPoint(x:number, y:number) {
         const rect = this.element.getBoundingClientRect();
         const scale = GraphManager.zoom;
         const adjustedX = x / scale;

@@ -3,7 +3,7 @@
 */
 class GraphManager {
 
-    static container:HTMLElement | null = null;
+    static container:HTMLElement ;
     static canvas_x = 0;
     static canvas_y = 0;
 
@@ -38,7 +38,7 @@ class GraphManager {
             e.preventDefault();
         });
 
-        GraphManager.container.addEventListener('drop', (e) => {
+        GraphManager.container.addEventListener('drop', (e:DragEvent) => {
             e.preventDefault();
             const nodeTypeData = JSON.parse(e.dataTransfer.getData('nodeType'));
             
@@ -49,14 +49,15 @@ class GraphManager {
             const y = (e.clientY - rect.top) / scale;
 
             // 创建新节点
-            const nodeType = new NodeType(
-                nodeTypeData.parentType,
-                nodeTypeData.type,
-                nodeTypeData.input,
-                nodeTypeData.output
-            );
-            const node = new Node(x, y, nodeType);
-            NodeManager.registerNode(node);
+            // const nodeConfig = new NodeConfig(
+            //     nodeTypeData.parentType,
+            //     nodeTypeData.type,
+            //     nodeTypeData.input,
+            //     nodeTypeData.output
+            // );
+            const nodeConfig = NodeManager.getNodeConfig("基础节点", "游戏设计动机");
+            new GraphNode(x, y, nodeConfig);
+            // NodeManager.registerNode(nodeConfig);
         });
     }
 
@@ -158,9 +159,9 @@ class GraphManager {
 
     /**
      * 打开右键菜单
-     * @param {Event} event 
+     * @param {MouseEvent} event - 鼠标事件对象
      */
-    static openContextMenu(event) {
+    static openContextMenu(event: MouseEvent) {
         event.preventDefault();
 
         // 先移除已存在的右键菜单
@@ -185,7 +186,7 @@ class GraphManager {
     }
 
     //缩放相关
-    static zoom_enter(event) {
+    static zoom_enter(event: WheelEvent) {
         // if (event.ctrlKey) {
         event.preventDefault();
         let zoomvalue;
@@ -198,13 +199,7 @@ class GraphManager {
 
         // 限制缩放范围
         this.zoom = Math.max(this.zoom_min, Math.min(this.zoom_max, zoomvalue));
-        // console.log("zoom", this.zoom);
-
-        // 更新画布transform
-        // this.updateTransform();
         this.zoom_refresh();
-
-        // }
     }
 
     /**
@@ -233,7 +228,7 @@ class GraphManager {
         this.container.style.top = '0px';
 
         // 重绘连线
-        drawAllConnections();
+        // drawAllConnections();
     }
 
 
@@ -265,7 +260,7 @@ class GraphManager {
             }
         }
     ];
-    static ChangeBackgroundColor(color){
+    static ChangeBackgroundColor(color:string){
         this.container.style.backgroundColor = color;
     }
 
@@ -348,12 +343,13 @@ class GraphManager {
 
         document.body.appendChild(menu);
     }
+
     /**
      * 创建右键菜单
      * @param {number} x 
      * @param {number} y 
      */
-    static createContextMenu(x, y) {
+    static createContextMenu(x:number, y:number) {
         const existingMenu = document.querySelector('.context-menu');
         if (existingMenu) {
             existingMenu.remove();
@@ -401,7 +397,7 @@ class GraphManager {
      * @param {Object} submenuNodeTypes 
      * @param {HTMLElement} parentMenu 
      */
-    static createSubmenu(submenuNodeTypes, parentMenu) {
+    static createSubmenu(submenuNodeTypes:Object, parentMenu:HTMLElement) {
         const existingSubmenu = document.querySelector('.context-submenu');
         if (existingSubmenu) {
             existingSubmenu.remove();
@@ -671,18 +667,6 @@ class GraphManager {
                 }
             });
         }
-
-        // // 点击空白处关闭菜单
-        // document.addEventListener('click', (e) => {
-        //     if (!e.target.closest('.menu') && !e.target.closest('#nav-bar')) {
-        //         document.querySelectorAll('.menu').forEach(menu => {
-        //             menu.style.display = 'none';
-        //         });
-        //         document.querySelectorAll('#nav-bar button').forEach(button => {
-        //             button.classList.remove('active');
-        //         });
-        //     }
-        // });
     }
 
     /**
@@ -690,7 +674,7 @@ class GraphManager {
      * @param {string} menuId - 菜单ID
      * @private
      */
-    static toggleMenu(menuId) {
+    static toggleMenu(menuId:string) {
         console.log('Toggling menu:', menuId);
         const menu = document.getElementById(menuId);
         const button = document.querySelector(`button[id$="${menuId.replace('-menu', '')}-button"]`);
@@ -731,12 +715,12 @@ class GraphManager {
      * @param {HTMLElement} element - 要使可拖动的元素
      * @private
      */
-    static makeDraggable(element) {
+    static makeDraggable(element:HTMLElement) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
         element.onmousedown = dragMouseDown;
 
-        function dragMouseDown(e) {
+        function dragMouseDown(e:MouseEvent) {
             if (e.target !== element) return;
 
             e.preventDefault();
@@ -746,7 +730,7 @@ class GraphManager {
             document.onmousemove = elementDrag;
         }
 
-        function elementDrag(e) {
+        function elementDrag(e:MouseEvent) {
             e.preventDefault();
             pos1 = pos3 - e.clientX;
             pos2 = pos4 - e.clientY;

@@ -121,12 +121,12 @@ class ConnectionUtils {
     /**
      * 设置连接线样式
      * @param {SVGElement} connection - 连接线元素
-     * @param {Object} style - 样式对象
+     * @param {Record<string, string>} style - 样式对象
      */
-    static setStyle(connection: SVGElement, style: Object) {
+    static setStyle(connection: SVGElement, style: Record<string, string>) {
         const path = connection.children[0];
         Object.keys(style).forEach(key => {
-            (path as HTMLElement).style[key] = style[key];
+            (path as HTMLElement).style[key as any] = style[key];
         });
     }
 }

@@ -123,7 +123,7 @@ class Group {
     }
     /**
      * 添加节点到组中
-     * @param {Node} node - 要添加的节点
+     * @param {GraphNode} node - 要添加的节点
      */
     addNode(node) {
         if (node && node.documentElement) {
@@ -137,7 +137,7 @@ class Group {
     }
     /**
      * 从组中移除节点
-     * @param {Node} node - 要移除的节点
+     * @param {GraphNode} node - 要移除的节点
      */
     removeNode(node) {
         this.nodes.delete(node);
