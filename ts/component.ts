@@ -2,7 +2,8 @@
  * 基础组件类
  */
 class Component {
-    constructor(elementType,title) {
+    element:HTMLElement;
+    constructor(elementType:string,title:string) {
         //这个类是抽象类，不能直接实例化
         if (this.constructor === Component) {
             throw new Error('Component 是抽象类，不能直接实例化');
@@ -36,14 +37,14 @@ class TextAreaComponent extends Component {
 }
 
 class TitleComponent extends Component {
-    constructor(textTitle) {
+    constructor(textTitle:string) {
         super('h1','标题');
         this.element.innerHTML = textTitle;
     }
 }
 
 class VideoComponent extends Component {
-    constructor(src) {
+    constructor(src:string) {
         super('video','视频');
         this.element.controls = true; // 添加播放控制器
         this.element.style.width = '100%';

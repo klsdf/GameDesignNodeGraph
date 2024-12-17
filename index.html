@@ -36,20 +36,20 @@
     <!-- 运行时间显示元素 -->
     <div id="runtimeDisplay">运行时间: 00:00:00</div>
 
-    <script src="./dist/ConnectionUtils.js"></script>
-    <script src="./dist/node.js"></script>
-    <script src="./dist/graph.js"></script>
-    <script src="./dist/component.js"></script>
-    <script src="./dist/group.js"></script>
-    <script src="./dist/save_manager.js"></script>
+    <script src="./js/ConnectionUtils.js"></script>
+    <script src="./js/node.js"></script>
+    <script src="./js/graph.js"></script>
+    <script src="./js/component.js"></script>
+    <script src="./js/group.js"></script>
+    <script src="./js/save_manager.js"></script>
 
     <script>
         GraphManager.init();
-        let config1 = new NodeConfig()
+        let config1 = new NodeConfig();
         config1.setType("基础节点", "游戏设计动机");
         config1.setSize("500px", "500px");
         config1.setProcessFunction((node) => {
-            node.setOutputPortData(0, "0号节点");
+            node.setOutputPortData(0, "0号234234234234节点");
             node.setOutputPortData(1, '1号节点');
             node.setOutputPortData(2, '2号节点');
             // throw new Error("测试错误");
@@ -60,7 +60,7 @@
         config1.addOutputPort("游戏设计动机");
         config1.addOutputPort("2");
         config1.addOutputPort("3");
-        var node1 = new Node(100, 100, config1);
+        var node1 = new GraphNode(100, 100, config1);
 
         let config2 = new NodeConfig();
         config2.setType("基础节点", "游戏设计体验");
@@ -76,7 +76,7 @@
         config2.addComponent(new TitleComponent("标题3"));
         config2.addInputPort("游戏设计动机");
 
-        var node2 = new Node(1000, 200, config2);
+        var node2 = new GraphNode(1000, 200, config2);
         NodeManager.registerNode(node1);
 
         node1.connectTo(0, node2, 0);

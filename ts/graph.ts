@@ -3,8 +3,7 @@
 */
 class GraphManager {
 
-    static container = null;
-    static precanvas = null;
+    static container:HTMLElement | null = null;
     static canvas_x = 0;
     static canvas_y = 0;
 

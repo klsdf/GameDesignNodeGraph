@@ -3,6 +3,16 @@
  * 用于管理和组织节点的分组功能，支持拖拽、调整大小等交互
  */
 class Group {
+
+    /** @type {string} 组的唯一标识符 */
+    id: string;
+
+    /** @type {Set<Node>} 存储组内的节点集合 */
+    nodes: Set<Node>;
+
+    /** @type {HTMLElement & { group?: Group }} 组的DOM元素 */
+    element: HTMLElement & { group?: Group };
+
     /**
      * 创建新的组
      * @param {number} x - 组的初始X坐标
@@ -17,8 +27,8 @@ class Group {
         /** @type {Set<Node>} 存储组内的节点集合 */
         this.nodes = new Set();
         
-        /** @type {HTMLElement} 组的DOM元素 */
-        this.element = this.createGroupElement(x, y, width, height);
+        /** @type {HTMLElement & { group?: Group }} 组的DOM元素 */
+        this.element    = this.createGroupElement(x, y, width, height);
         
         // 将组对象绑定到DOM元素
         this.element.group = this;
@@ -35,21 +45,21 @@ class Group {
      * @returns {HTMLElement} 创建的组元素
      * @private
      */
-    createGroupElement(x, y, width, height) {
-        const group = document.createElement('div');
-        group.className = 'group';
-        group.id = this.id;
-        group.style.left = x + 'px';
-        group.style.top = y + 'px';
-        group.style.width = width + 'px';
-        group.style.height = height + 'px';
+    createGroupElement(x: number, y: number, width: number, height: number) :HTMLElement & { group?: Group }{
+        const groupElement = document.createElement('div');
+        groupElement.className = 'group';
+        groupElement.id = this.id;
+        groupElement.style.left = x + 'px';
+        groupElement.style.top = y + 'px';
+        groupElement.style.width = width + 'px';
+        groupElement.style.height = height + 'px';
         
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'group-resize-handle';
-        group.appendChild(resizeHandle);
+        groupElement.appendChild(resizeHandle);
 
-        GraphManager.container.appendChild(group); // 将组添加到图形管理器的容器中
-        return group;
+        GraphManager.container.appendChild(groupElement); // 将组添加到图形管理器的容器中
+        return groupElement;
     }
 
     /**
@@ -58,9 +68,11 @@ class Group {
      * @private
      */
     initializeEventListeners() {
-        let isDragging = false; // 标记组是否正在被拖动
-        let startX, startY; // 记录拖动开始时的鼠标位置
-        let initialGroupLeft, initialGroupTop; // 记录拖动开始时组的位置
+        let isDragging: boolean = false; // 标记组是否正在被拖动
+        let startX: number; // 记录拖动开始时的鼠标位置
+        let startY: number; // 记录拖动开始时的鼠标位置
+        let initialGroupLeft: number; // 记录拖动开始时组的位置
+        let initialGroupTop: number; // 记录拖动开始时组的位置
         let initialNodeOffsets = new Map(); // 存储节点的初始偏移量
 
         // 组拖拽事件处理

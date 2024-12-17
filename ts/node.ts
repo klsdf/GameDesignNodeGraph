@@ -11,10 +11,10 @@ class NodeManager {
 
     /**
      * 注册新的节点类型
-     * @param {Node} node - 要注册的节点实例
+     * @param {GraphNode} node - 要注册的节点实例
      * @throws {Error} 如果节点类型已存在于同一父类型中
      */
-    static registerNode(node) {
+    static registerNode(node:GraphNode) {
         if (!NodeManager.nodes[node.nodeConfig.parentType]) {
             NodeManager.nodes[node.nodeConfig.parentType] = [];
         }
@@ -78,15 +78,32 @@ class NodeManager {
  * 表示节点上的输入输出端口，包含端口所属节点、索引和类型信息
  */
 class Port {
+
+    /** @type {GraphNode} 端口所属节点 */
+    node:GraphNode;
+
+    /** @type {number} 端口索引 */
+    index:number;
+
+    /** @type {string} 端口类型 */
+    type:string;
+
+    /** @type {Array<any>} 端口数据 */
+    data:Array<any>;
+
+    /** @type {HTMLElement} 端口DOM元素 */
+    element:HTMLElement|null;
+
     /**
      * 创建新端口
-     * @param {Node} node - 端口所属的节点
+     * @param {GraphNode} node - 端口所属的节点
      * @param {number} index - 端口在节点中的索引
-     * @param {string} type - 端口类型
+     * @param {string} type - 端口类型  
+     * @param {Array<any>} data - 端口数据
      * @param {HTMLElement} element - 端口DOM元素
      */
-    constructor(node, index, type, data,element) {
-        /** @type {Node} 端口所属节点 */
+    constructor(node:GraphNode, index:number, type:string, data:Array<any>, element:HTMLElement) {
+        /** @type {GraphNode} 端口所属节点 */
         this.node = node;
 
         /** @type {number} 端口索引 */
@@ -109,15 +126,65 @@ class Port {
  * 表示流程图中的一个节点，包含输入输出端口、数据处理和连接管理功能
  * 通过NodeConfig类来配置节点
  */
-class Node {
+class GraphNode {
     // #region 节点初始化
+
+    /** @type {boolean} 是否正在移动 */
+    ismoving:boolean;
+
+    /** @type {number} 节点X坐标 */
+    x:number;
+
+    /** @type {number} 节点Y坐标 */
+    y:number;
+
+    /** @type {NodeConfig} 节点配置 */
+    nodeConfig:NodeConfig;
+
+    /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
+    documentElement: HTMLElement & { node?: GraphNode };
+
+
+    /** @type {Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>} 节点连接列表,每个连接包含起始端口、目标端口和SVG路径元素
+     * 例如:
+     * [
+     *   {
+     *     from: <div class="output-port">, // 起始端口元素
+     *     to: <div class="input-port">, // 目标端口元素
+     *     path: <svg class="connection"> // 连接线SVG元素
+     *   }
+     * ]
+     */
+    connections:Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>;
+
+    /** @type {Array<Port>} 输入端口列表 */
+    inputPortsPlus:Array<Port>;
+
+    /** @type {Array<Port>} 输出端口列表 */
+    outputPortsPlus:Array<Port>;
+
+    /** @type {Array<HTMLElement>} 输入端口列表 */
+    inputPorts:Array<HTMLElement>;
+
+    /** @type {Array<HTMLElement>} 输出端口列表 */
+    outputPorts:Array<HTMLElement>;
+    
+    /** @type {Array<Array<any>>} 输入端口数据列表 */
+    inputPortsData:Array<Array<any>> = [];
+
+    /** @type {Array<any>} 输出端口数据列表 */
+    outputPortsData:Array<any> = [];
+
+    /** @type {Group} 节点组 */
+    group:Group|null;
+
     /**
      * 创建新节点
      * @param {number} x - 节点初始X坐标
      * @param {number} y - 节点初始Y坐标
      * @param {NodeConfig} nodeConfig - 节点配置对象
      */
-    constructor(x, y, nodeConfig) {
+    constructor(x:number, y:number, nodeConfig:NodeConfig) {
         /** @type {boolean} 是否正在移动 */
         this.ismoving = false;
 
@@ -130,16 +197,6 @@ class Node {
         /** @type {NodeConfig} 节点配置 */
         this.nodeConfig = nodeConfig;
 
-        /** @type {Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>} 节点连接列表,每个连接包含起始端口、目标端口和SVG路径元素
-         * 例如:
-         * [
-         *   {
-         *     from: <div class="output-port">, // 起始端口元素
-         *     to: <div class="input-port">, // 目标端口元素
-         *     path: <svg class="connection"> // 连接线SVG元素
-         *   }
-         * ]
-         */
         this.connections = []; // 存储节点之间的连接信息
 
         /** @type {Array<HTMLElement>} 输入端口列表 */
@@ -155,7 +212,10 @@ class Node {
         /** @type {Array<HTMLElement>} 输出端口列表 */
         this.outputPorts = [];
 
-        this.documentElement = document.createElement('div');
+        
+
+        /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
+        this.documentElement = document.createElement('div') as HTMLElement & { node?: GraphNode };
 
         this.documentElement.className = 'node';
         // this.documentElement.id = 'node' + Node.nodeCounter;
@@ -168,7 +228,7 @@ class Node {
 
         this.initEvents();
 
-        GraphManager.container.appendChild(this.documentElement);
+        GraphManager.container?.appendChild(this.documentElement);
         this.addResizeHandle();
 
         // 添加数据相关的属性
@@ -199,13 +259,14 @@ class Node {
             let portType = this.nodeConfig.inputPorts[i].type;
             // let element = this.createInputElement(portType);
             let newport = new Port(this, i, portType, [], null);
+
             this.inputPortsPlus.push(newport);
         }
 
         // 处理输出端口
         for (let i = 0; i < this.nodeConfig.outputPorts.length; i++) {
             let portType = this.nodeConfig.outputPorts[i].type;
-            let newport = new Port(this, i, portType, null, null);
+            let newport = new Port(this, i, portType, [], null);
             this.outputPortsPlus.push(newport);
         }
 
@@ -475,11 +536,11 @@ class Node {
             this.documentElement.appendChild(component.element);
         });
     }
-    // 清除所有节点
-    static clearAllNodes() {
-        document.querySelectorAll('.node').forEach(node => node.remove());
-        connections = [];
-    }
+    // // 清除所有节点
+    // static clearAllNodes() {
+    //     document.querySelectorAll('.node').forEach(node => node.remove());
+    //     connections = [];
+    // }
 
     // 设置节点拖拽
     setupNodeDrag(e) {
@@ -623,7 +684,7 @@ class Node {
      * @param {HTMLElement} fromPort - 起始端口
      * @param {HTMLElement} toPort - 目标端口
      */
-    connectPorts(fromPort, toPort) {
+    connectPorts(fromPort: HTMLElement, toPort: HTMLElement) {
         // 获取端口索引
         const fromPortIndex = Array.from(fromPort.parentNode.querySelectorAll('.output-port')).indexOf(fromPort);
         const toPortIndex = Array.from(toPort.parentNode.querySelectorAll('.input-port')).indexOf(toPort);
@@ -676,11 +737,11 @@ class Node {
     /**
      * 连接到目标节点
      * @param {number} fromPortIndex - 当前节点的输出端口索引
-     * @param {Node} targetNode - 目标节点对象
+     * @param {GraphNode} targetNode - 目标节点对象
      * @param {number} toPortIndex - 目标节点的输入端口索引
      * @throws {Error} 当端口索引无效时抛出错误
      */
-    connectTo(fromPortIndex, targetNode, toPortIndex) {
+    connectTo(fromPortIndex: number, targetNode: GraphNode, toPortIndex: number) {
         // 检查索引是否有效
         if (fromPortIndex < 0 || fromPortIndex >= this.outputPorts.length) {
             throw new Error(`Invalid fromPortIndex: ${fromPortIndex}`);
@@ -701,7 +762,7 @@ class Node {
         //     to: toPort,
         //     path: connection
         // };
-        const connectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
+        const connectionInfo: ConnectionInfo = new ConnectionInfo(fromPort, fromPortIndex, toPort, toPortIndex, connection);
 
         this.connections.push(connectionInfo);
         targetNode.connections.push(connectionInfo);
@@ -793,9 +854,9 @@ class Node {
     // #endregion
 
     setupPortEvents() {
-        let startPort = null;
-        let startIsOutput = false;
-        let isDrawing = false;
+        let startPort: HTMLElement | null = null;
+        let startIsOutput: boolean = false;
+        let isDrawing: boolean = false;        // 是否正在绘制连接
 
         const addPortEvents = (port, isOutput) => {
             port.addEventListener('mousedown', (e) => {
@@ -884,7 +945,7 @@ class Node {
 
 
     // 修改：获取输入端口数据的方法
-    getInputPortData(index) {
+    getInputPortData(index:number) {
         if (index < 0 || index >= this.inputPorts.length) {
             console.warn(`Invalid input port index: ${index}`);
             return [];
@@ -944,6 +1005,31 @@ class Node {
  * 负责管理节点的类型、大小、处理函数等信息
  */
 class NodeConfig {
+
+    /** @type {string} 父类型 */
+    parentType:string;
+
+    /** @type {string} 类型 */
+    type:string;
+
+    /** @type {Function} 处理函数 */
+    processFunction:Function;
+
+    /** @type {string} 宽度 */
+    width:string;
+
+    /** @type {string} 高度 */
+    height:string;
+
+    /** @type {Array<Component>} 组件列表 */
+    components:Array<Component>;
+
+    /** @type {Array<{type: string}>} 输入端口列表 */
+    inputPorts:Array<{type: string}>;
+
+    /** @type {Array<{type: string}>} 输出端口列表 */
+    outputPorts:Array<{type: string}>;
+
     constructor(parentType = "默认", type = "默认", processFunction = () => { console.log("默认处理函数") }, width = "300px", height = '400px') {
         this.parentType = parentType;
         this.type = type;
@@ -965,25 +1051,25 @@ class NodeConfig {
      * 添加组件到节点配置中
      * @param {Component} component - 要添加的组件
      */
-    addComponent(component) {
+    addComponent(component:Component) {
         this.components.push(component);
     }
 
 
-    setType(parentType, type) {
+    setType(parentType:string, type:string) {
         this.parentType = parentType;
         this.type = type;
     }
-    setSize(width, height) {
+    setSize(width:string, height:string) {
         this.width = width;
         this.height = height;
     }
-    setProcessFunction(processFunction) {
+    setProcessFunction(processFunction:Function) {
         this.processFunction = processFunction;
     }
 
     // 修改默认处理函数以持新的API
-    defaultProcess(node) {
+    defaultProcess(node:GraphNode) {
         // 从第一个输入端口获取数据
         const inputData = node.getInputPortData(0);
         // 设置第一个输出端口的数据
@@ -991,12 +1077,12 @@ class NodeConfig {
     }
 
     // 添加输入端口信息
-    addInputPort(type = '无') {
+    addInputPort(type:string = '无') {
         this.inputPorts.push({ type });
     }
 
     // 添加输出端口信息
-    addOutputPort(type = '无') {
+    addOutputPort(type:string = '无') {
         this.outputPorts.push({ type });
     }
 }

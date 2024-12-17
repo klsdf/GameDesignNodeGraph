@@ -1,11 +1,18 @@
-
-
+"use strict";
 /**
  * 连接信息类
  * 用于存储连接信息，包括起始端口、目标端口和连接线
  */
-class ConnectionInfo{
-    constructor(from,fromIndex ,to,toIndex,path){
+class ConnectionInfo {
+    /**
+     * 构造函数
+     * @param {HTMLElement} from - 起始的端点
+     * @param {number} fromIndex - 起始端口索引
+     * @param {HTMLElement} to - 目标的端点
+     * @param {number} toIndex - 目标端口索引
+     * @param {SVGElement} path - 连接线
+     */
+    constructor(from, fromIndex, to, toIndex, path) {
         this.from = from;
         this.fromIndex = fromIndex;
         this.to = to;
@@ -13,8 +20,6 @@ class ConnectionInfo{
         this.path = path;
     }
 }
-
-
 /**
  * 连接工具类
  * 提供创建和管理节点间连接线的工具方法，只负责画线
@@ -33,24 +38,20 @@ class ConnectionUtils {
         connection.classList.add("connection");
         connection.appendChild(path);
         container.appendChild(connection);
-
         this.setStyle(connection, {
             stroke: '#fff',
             strokeWidth: '5',
             strokeDasharray: '10, 10'
         });
-
-
         return connection;
     }
-
     /**
      * 获取或创建SVG容器
-     * @returns {SVGElement} SVG容器元素
+     * @returns {SVGSVGElement} SVG容器元素
      */
     static getSvgContainer() {
         let svg = document.getElementById('connection-svg');
-        if (!svg) {
+        if (svg === null) {
             svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.id = 'connection-svg';
             svg.style.position = 'absolute';
@@ -60,30 +61,12 @@ class ConnectionUtils {
             svg.style.height = '100%';
             svg.style.pointerEvents = 'none';
             svg.style.zIndex = '1';
-            GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
+            if (GraphManager.container) {
+                GraphManager.container.insertBefore(svg, GraphManager.container.firstChild);
+            }
         }
         return svg;
     }
-
-
-
-    // /**
-    //  * 创建两个端口之间的连接
-    //  * @param {HTMLElement} fromPort - 起始端口
-    //  * @param {HTMLElement} toPort - 目标端口
-    //  * @returns {Object} 连接信息对象
-    //  */
-    // static createConnection(fromPort, toPort) {
-    //     const connection = this.drawConnection();
-        
-    //     const connectionInfo = {
-    //         from: fromPort,
-    //         to: toPort,
-    //         path: connection
-    //     };
-    //     return connectionInfo;
-    // }
-
     /**
      * 更新连接线的路径
      * @param {SVGElement} connection - 连接线元素
@@ -98,7 +81,6 @@ class ConnectionUtils {
         const lineCurve = this.createCurvature(startX, startY, endX, endY, curvature);
         path.setAttributeNS(null, 'd', lineCurve);
     }
-
     /**
      * 创建贝塞尔曲线路径
      * @param {number} startX - 起始X坐标
@@ -113,7 +95,6 @@ class ConnectionUtils {
         const hx2 = endX - Math.abs(endX - startX) * curvature;
         return `M ${startX} ${startY} C ${hx1} ${startY} ${hx2} ${endY} ${endX} ${endY}`;
     }
-
     /**
      * 设置连接线样式
      * @param {SVGElement} connection - 连接线元素

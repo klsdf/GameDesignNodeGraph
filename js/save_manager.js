@@ -1,3 +1,13 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 /**
  * 保存管理器类
  * 负责管理流程图的保存、加载和导出功能
@@ -17,12 +27,11 @@ class SaveManager {
                 y: GraphManager.container.style.top
             }
         };
-
         // 保存节点状态
         document.querySelectorAll('.node').forEach(nodeElement => {
             const node = nodeElement.node;
-            if (!node) return;
-
+            if (!node)
+                return;
             const nodeState = {
                 id: nodeElement.id,
                 nodeConfig: node.nodeConfig,
@@ -44,12 +53,11 @@ class SaveManager {
             };
             state.nodes.push(nodeState);
         });
-
         // 保存组状态
         document.querySelectorAll('.group').forEach(groupElement => {
             const group = groupElement.group;
-            if (!group) return;
-
+            if (!group)
+                return;
             const groupState = {
                 id: group.id,
                 position: {
@@ -63,10 +71,8 @@ class SaveManager {
             };
             state.groups.push(groupState);
         });
-
         return state;
     }
-
     /**
      * 加载流程图状态
      * @param {Object} state - 要加载的状态对象
@@ -74,44 +80,29 @@ class SaveManager {
     static loadState(state) {
         // 清除当前状态
         this.clearAll();
-
         // 设置缩放和平移
         GraphManager.zoom = state.zoom;
         GraphManager.container.style.left = state.pan.x;
         GraphManager.container.style.top = state.pan.y;
-
         // 创建组
         const groupMap = new Map();
         state.groups.forEach(groupState => {
-            const group = new Group(
-                parseInt(groupState.position.x),
-                parseInt(groupState.position.y),
-                parseInt(groupState.size.width),
-                parseInt(groupState.size.height)
-            );
+            const group = new Group(parseInt(groupState.position.x), parseInt(groupState.position.y), parseInt(groupState.size.width), parseInt(groupState.size.height));
             group.id = groupState.id;
             groupMap.set(groupState.id, group);
         });
-
         // 创建节点
         const nodeMap = new Map();
         state.nodes.forEach(nodeState => {
-            const node = new Node(
-                parseInt(nodeState.position.x),
-                parseInt(nodeState.position.y),
-                nodeState.nodeConfig
-            );
+            const node = new Node(parseInt(nodeState.position.x), parseInt(nodeState.position.y), nodeState.nodeConfig);
             node.documentElement.id = nodeState.id;
             node.documentElement.style.width = nodeState.size.width;
             node.documentElement.style.height = nodeState.size.height;
-
             if (nodeState.group && groupMap.has(nodeState.group)) {
                 groupMap.get(nodeState.group).addNode(node);
             }
-
             nodeMap.set(nodeState.id, node);
         });
-
         // 重建连接
         state.nodes.forEach(nodeState => {
             const node = nodeMap.get(nodeState.id);
@@ -124,26 +115,24 @@ class SaveManager {
             });
         });
     }
-
     /**
      * 清除所有节点和组
      */
     static clearAll() {
         // 清除所有连接线
         const svg = document.getElementById('connection-svg');
-        if (svg) svg.innerHTML = '';
-
+        if (svg)
+            svg.innerHTML = '';
         // 清除所有组
         document.querySelectorAll('.group').forEach(group => {
-            if (group.group) group.group.delete();
+            if (group.group)
+                group.group.delete();
         });
-
         // 清除所有节点
         document.querySelectorAll('.node').forEach(node => {
             node.remove();
         });
     }
-
     /**
      * 导出流程图为JSON文件
      */
@@ -157,20 +146,22 @@ class SaveManager {
         a.click();
         URL.revokeObjectURL(url);
     }
-
     /**
      * 从JSON文件导入流程图
      * @param {File} file - 要导入的JSON文件
      * @returns {Promise<void>}
      */
-    static async importFromFile(file) {
-        try {
-            const text = await file.text();
-            const state = JSON.parse(text);
-            this.loadState(state);
-        } catch (error) {
-            console.error('Error importing file:', error);
-            throw error;
-        }
+    static importFromFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const text = yield file.text();
+                const state = JSON.parse(text);
+                this.loadState(state);
+            }
+            catch (error) {
+                console.error('Error importing file:', error);
+                throw error;
+            }
+        });
     }
-} 
+}
