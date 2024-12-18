@@ -1,3 +1,41 @@
+class SaveData {
+    nodes: any[];
+    groups: any[];
+    zoom: number;
+    pan: { x: string; y: string };
+    constructor() {
+        this.nodes = [];
+        this.groups = [];
+        this.zoom = 1;
+        this.pan = { x: '0', y: '0' };
+    }
+
+}
+
+
+/**
+ * 数据控制器类
+ * 管理项目中所有运行时的数据，比如当前所有节点，所有组等
+ */
+class DataController
+{
+    static nodes: Node[] = [];
+    static groups: Group[] = [];
+    static graph: GraphManager;
+
+
+    static getAllInfo()
+    {
+        return {
+            nodes: this.nodes,
+            groups: this.groups
+        }
+    }
+}
+
+
+
+
 /**
  * 保存管理器类
  * 负责管理流程图的保存、加载和导出功能
@@ -8,15 +46,7 @@ class SaveManager {
      * @returns {Object} 保存的状态对象
      */
     static saveState() {
-        const state = {
-            nodes: [],
-            groups: [],
-            zoom: GraphManager.zoom,
-            pan: {
-                x: GraphManager.container.style.left,
-                y: GraphManager.container.style.top
-            }
-        };
+        const state: SaveData = new SaveData();
 
         // 保存节点状态
         document.querySelectorAll('.node').forEach(nodeElement => {
