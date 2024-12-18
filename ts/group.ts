@@ -28,12 +28,12 @@ class Group {
         this.nodes = new Set();
         
         /** @type {HTMLElement & { group?: Group }} 组的DOM元素 */
-        this.element    = this.createGroupElement(x, y, width, height);
+        this.element    = this.#createGroupElement(x, y, width, height);
         
         // 将组对象绑定到DOM元素
         this.element.group = this;
         
-        this.initializeEventListeners();
+        this.#initializeEventListeners();
     }
 
     /**
@@ -45,7 +45,7 @@ class Group {
      * @returns {HTMLElement} 创建的组元素
      * @private
      */
-    createGroupElement(x: number, y: number, width: number, height: number) :HTMLElement & { group?: Group }{
+    #createGroupElement(x: number, y: number, width: number, height: number) :HTMLElement & { group?: Group }{
         const groupElement = document.createElement('div');
         groupElement.className = 'group';
         groupElement.id = this.id;
@@ -67,7 +67,7 @@ class Group {
      * 包括拖拽和调整大小功能
      * @private
      */
-    initializeEventListeners() {
+    #initializeEventListeners() {
         let isDragging: boolean = false; // 标记组是否正在被拖动
         let startX: number; // 记录拖动开始时的鼠标位置
         let startY: number; // 记录拖动开始时的鼠标位置

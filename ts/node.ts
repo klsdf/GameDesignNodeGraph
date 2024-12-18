@@ -3,7 +3,8 @@
  * 负责管理和注册所有节点类型，以及更新节点列表显示
  */
 class NodeManager {
-    static registeredNodeConfigs :Array<NodeConfig> = [];
+    //key 为string
+    static registeredNodeConfigs :Array<NodeConfig>  = [];
 
     /**
      * 注册新的节点类型
@@ -11,30 +12,27 @@ class NodeManager {
      * @throws {Error} 如果节点类型已存在于同一父类型中
      */
     static registerNode(nodeConfig: NodeConfig): void {
-        if (!NodeManager.registeredNodeConfigs[nodeConfig.parentType]) {
-            NodeManager.registeredNodeConfigs[nodeConfig.parentType] = [];
-        }
-        // 检查是否已存在相同类型的节点
-        const existingNodeConfig = NodeManager.registeredNodeConfigs[nodeConfig.parentType].find(
-            config => config.type === nodeConfig.type
-        );
-        console.log("existingNodeConfig", existingNodeConfig);
-        if (existingNodeConfig) {
+        if(this.getNodeConfig(nodeConfig.parentType, nodeConfig.type) !==undefined) {
             throw new Error(`节点类型 '${nodeConfig.type}' 已存在于 '${nodeConfig.parentType}' 分类中`);
+            return;
         }
-        NodeManager.registeredNodeConfigs[nodeConfig.parentType].push({
-            type: nodeConfig.type,
-            processFunction: nodeConfig.processFunction
-        });
+
+        NodeManager.registeredNodeConfigs.push(nodeConfig);
         NodeManager.updateNodeList();
     }
 
 
-
-    static getNodeConfig(parentType:string, type:string):NodeConfig {
-        return NodeManager.registeredNodeConfigs[parentType].find(config => config.type === type);
+    /**
+     * 获取节点配置
+     * @param {string} parentType - 父类型
+     * @param {string} type - 节点类型
+     * @returns {NodeConfig|undefined} 节点配置或undefined
+     */
+    static getNodeConfig(parentType:string, type:string):NodeConfig|undefined {
+        return NodeManager.registeredNodeConfigs.find(config => 
+            config.parentType === parentType && config.type === type
+        );
     }
-
 
     /**
      * 更新首页的节点列表显示
@@ -969,9 +967,9 @@ class GraphNode {
     }
 
     // 添加新的辅助方法来获取输入和输出连接
-    getIncomingConnections() {
+    getIncomingConnections() :Array<ConnectionInfo> {
         // 只遍历源节点的connections
-        const incomingConnections = [];
+        const incomingConnections:Array<ConnectionInfo> = [];
         document.querySelectorAll('.node').forEach(nodeElement => {
             const sourceNode = nodeElement.node;
             if (sourceNode) {
@@ -985,7 +983,7 @@ class GraphNode {
         return incomingConnections;
     }
 
-    getOutgoingConnections() {
+    getOutgoingConnections() :Array<ConnectionInfo> {
         // 返回当前节点作为源节点的所有连接
         return this.connections.filter(conn => conn.from.parentNode === this.documentElement);
     }
