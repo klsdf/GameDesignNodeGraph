@@ -4,16 +4,24 @@
  */
 class MenuController
 {
+
+    static NodeListMenu:HTMLElement;
+    static SettingsMenu:HTMLElement;
+    static FileMenu:HTMLElement;
+    static ProposalMenu:HTMLElement;
+
+
+
     static init()
     {
-        this.initSystemMenus();
+        this.#initSystemMenus();
     }
 
     /**
      * 初始化系统菜单
      * @private
      */
-    static initSystemMenus() {
+    static #initSystemMenus() {
         console.log('Initializing system menus...');
         // 创建导航栏
         const navBar = document.createElement('div');
@@ -28,10 +36,10 @@ class MenuController
 
         console.log('Creating menus...');
         // 创建菜单
-        this.createNodeListMenu();
-        this.createSettingsMenu();
-        this.createFileMenu();
-        this.createProposalMenu();
+        this.#createNodeListMenu();
+        this.#createSettingsMenu();
+        this.#createFileMenu();
+        this.#createProposalMenu();
         // 初始化事件监听
         this.initMenuEvents();
         
@@ -43,41 +51,41 @@ class MenuController
      * 创建节点列表菜单
      * @private
      */
-    static createNodeListMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'node-list-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
+    static #createNodeListMenu() {
+        this.NodeListMenu = document.createElement('div');
+        this.NodeListMenu.id = 'node-list-menu';
+        this.NodeListMenu.className = 'menu';
+        this.NodeListMenu.innerHTML = `
             <h3>节点列表</h3>
             <div id="node-list-container"></div>
         `;
-        document.body.appendChild(menu);
+        document.body.appendChild(this.NodeListMenu);
     }
 
     /**
      * 创建设置菜单
      * @private
      */
-    static createSettingsMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'settings-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
+    static #createSettingsMenu() {
+        this.SettingsMenu = document.createElement('div');
+        this.SettingsMenu.id = 'settings-menu';
+        this.SettingsMenu.className = 'menu';
+        this.SettingsMenu.innerHTML = `
             <h3>节点图设置</h3>
             <button class="menu-button" onclick="GraphManager.resetView()">重置视图</button>
         `;
-        document.body.appendChild(menu);
+        document.body.appendChild(this.SettingsMenu);
     }
 
     /**
      * 创建文件菜单
      * @private
      */
-    static createFileMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'file-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
+    static #createFileMenu() {
+        this.FileMenu = document.createElement('div');
+        this.FileMenu.id = 'file-menu';
+        this.FileMenu.className = 'menu';
+        this.FileMenu.innerHTML = `
             <h3>文件操作</h3>
             <div class="menu-content">
                 <button class="menu-button" id="export-btn">导出文件</button>
@@ -85,22 +93,22 @@ class MenuController
                 <input type="file" id="import-input" accept=".json" style="display: none;">
             </div>
         `;
-        document.body.appendChild(menu);
+        document.body.appendChild(this.FileMenu);
     }
 
     /**
      * 创建策划案预览菜单
      * @private
      */
-    static createProposalMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'proposal';
-        menu.className = 'menu';
-        menu.innerHTML = `
+    static #createProposalMenu() {
+        this.ProposalMenu = document.createElement('div');
+        this.ProposalMenu.id = 'proposal';
+        this.ProposalMenu.className = 'menu';
+        this.ProposalMenu.innerHTML = `
             <button id="closeProposal">关闭</button>
             <div id="proposalContent"></div>
         `;
-        document.body.appendChild(menu);
+        document.body.appendChild(this.ProposalMenu);
     }
 
     /**
@@ -181,8 +189,8 @@ class MenuController
         const menu = document.getElementById(menuId);
         const button = document.querySelector(`button[id$="${menuId.replace('-menu', '')}-button"]`);
         
-        console.log('Menu element:', menu);
-        console.log('Button element:', button);
+        // console.log('Menu element:', menu);
+        // console.log('Button element:', button);
         
         if (menu.style.display === 'block') {
             menu.style.display = 'none';
@@ -666,7 +674,7 @@ class GraphManager {
                 submenuItem.textContent = nodeData.type;
                 console.log(nodeData);
                 submenuItem.onclick = () => {
-                    new Node(this.lastContextMenuX, this.lastContextMenuY, nodeData);
+                    new GraphNode(this.lastContextMenuX, this.lastContextMenuY, nodeData);
                     // createNode(lastContextMenuX, lastContextMenuY, subitem.type);
                     parentMenu.remove();
                     submenu.remove();

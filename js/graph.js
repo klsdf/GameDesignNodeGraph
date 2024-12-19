@@ -1,99 +1,17 @@
 "use strict";
-var _a;
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _a, _MenuController_initSystemMenus, _MenuController_createNodeListMenu, _MenuController_createSettingsMenu, _MenuController_createFileMenu, _MenuController_createProposalMenu, _b;
 /**
  * 菜单控制器类
  * 负责管理菜单的创建和事件监听
  */
 class MenuController {
     static init() {
-        this.initSystemMenus();
-    }
-    /**
-     * 初始化系统菜单
-     * @private
-     */
-    static initSystemMenus() {
-        console.log('Initializing system menus...');
-        // 创建导航栏
-        const navBar = document.createElement('div');
-        navBar.id = 'nav-bar';
-        navBar.innerHTML = `
-            <button id="node-list-button">📋 节点列表</button>
-            <button id="settings-button">⚙️ 设置</button>
-            <button id="file-button">📁 文件</button>
-            <button id="proposal-button">📄 策划案</button>
-        `;
-        document.body.appendChild(navBar);
-        console.log('Creating menus...');
-        // 创建菜单
-        this.createNodeListMenu();
-        this.createSettingsMenu();
-        this.createFileMenu();
-        this.createProposalMenu();
-        // 初始化事件监听
-        this.initMenuEvents();
-        // 使菜单可拖动
-        this.makeMenusDraggable();
-    }
-    /**
-     * 创建节点列表菜单
-     * @private
-     */
-    static createNodeListMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'node-list-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
-            <h3>节点列表</h3>
-            <div id="node-list-container"></div>
-        `;
-        document.body.appendChild(menu);
-    }
-    /**
-     * 创建设置菜单
-     * @private
-     */
-    static createSettingsMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'settings-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
-            <h3>节点图设置</h3>
-            <button class="menu-button" onclick="GraphManager.resetView()">重置视图</button>
-        `;
-        document.body.appendChild(menu);
-    }
-    /**
-     * 创建文件菜单
-     * @private
-     */
-    static createFileMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'file-menu';
-        menu.className = 'menu';
-        menu.innerHTML = `
-            <h3>文件操作</h3>
-            <div class="menu-content">
-                <button class="menu-button" id="export-btn">导出文件</button>
-                <button class="menu-button" id="import-btn">导入文件</button>
-                <input type="file" id="import-input" accept=".json" style="display: none;">
-            </div>
-        `;
-        document.body.appendChild(menu);
-    }
-    /**
-     * 创建策划案预览菜单
-     * @private
-     */
-    static createProposalMenu() {
-        const menu = document.createElement('div');
-        menu.id = 'proposal';
-        menu.className = 'menu';
-        menu.innerHTML = `
-            <button id="closeProposal">关闭</button>
-            <div id="proposalContent"></div>
-        `;
-        document.body.appendChild(menu);
+        __classPrivateFieldGet(this, _a, "m", _MenuController_initSystemMenus).call(this);
     }
     /**
      * 初始化菜单事件
@@ -166,8 +84,8 @@ class MenuController {
         console.log('Toggling menu:', menuId);
         const menu = document.getElementById(menuId);
         const button = document.querySelector(`button[id$="${menuId.replace('-menu', '')}-button"]`);
-        console.log('Menu element:', menu);
-        console.log('Button element:', button);
+        // console.log('Menu element:', menu);
+        // console.log('Button element:', button);
         if (menu.style.display === 'block') {
             menu.style.display = 'none';
             button?.classList.remove('active');
@@ -227,6 +145,69 @@ class MenuController {
         }
     }
 }
+_a = MenuController, _MenuController_initSystemMenus = function _MenuController_initSystemMenus() {
+    console.log('Initializing system menus...');
+    // 创建导航栏
+    const navBar = document.createElement('div');
+    navBar.id = 'nav-bar';
+    navBar.innerHTML = `
+            <button id="node-list-button">📋 节点列表</button>
+            <button id="settings-button">⚙️ 设置</button>
+            <button id="file-button">📁 文件</button>
+            <button id="proposal-button">📄 策划案</button>
+        `;
+    document.body.appendChild(navBar);
+    console.log('Creating menus...');
+    // 创建菜单
+    __classPrivateFieldGet(this, _a, "m", _MenuController_createNodeListMenu).call(this);
+    __classPrivateFieldGet(this, _a, "m", _MenuController_createSettingsMenu).call(this);
+    __classPrivateFieldGet(this, _a, "m", _MenuController_createFileMenu).call(this);
+    __classPrivateFieldGet(this, _a, "m", _MenuController_createProposalMenu).call(this);
+    // 初始化事件监听
+    this.initMenuEvents();
+    // 使菜单可拖动
+    this.makeMenusDraggable();
+}, _MenuController_createNodeListMenu = function _MenuController_createNodeListMenu() {
+    this.NodeListMenu = document.createElement('div');
+    this.NodeListMenu.id = 'node-list-menu';
+    this.NodeListMenu.className = 'menu';
+    this.NodeListMenu.innerHTML = `
+            <h3>节点列表</h3>
+            <div id="node-list-container"></div>
+        `;
+    document.body.appendChild(this.NodeListMenu);
+}, _MenuController_createSettingsMenu = function _MenuController_createSettingsMenu() {
+    this.SettingsMenu = document.createElement('div');
+    this.SettingsMenu.id = 'settings-menu';
+    this.SettingsMenu.className = 'menu';
+    this.SettingsMenu.innerHTML = `
+            <h3>节点图设置</h3>
+            <button class="menu-button" onclick="GraphManager.resetView()">重置视图</button>
+        `;
+    document.body.appendChild(this.SettingsMenu);
+}, _MenuController_createFileMenu = function _MenuController_createFileMenu() {
+    this.FileMenu = document.createElement('div');
+    this.FileMenu.id = 'file-menu';
+    this.FileMenu.className = 'menu';
+    this.FileMenu.innerHTML = `
+            <h3>文件操作</h3>
+            <div class="menu-content">
+                <button class="menu-button" id="export-btn">导出文件</button>
+                <button class="menu-button" id="import-btn">导入文件</button>
+                <input type="file" id="import-input" accept=".json" style="display: none;">
+            </div>
+        `;
+    document.body.appendChild(this.FileMenu);
+}, _MenuController_createProposalMenu = function _MenuController_createProposalMenu() {
+    this.ProposalMenu = document.createElement('div');
+    this.ProposalMenu.id = 'proposal';
+    this.ProposalMenu.className = 'menu';
+    this.ProposalMenu.innerHTML = `
+            <button id="closeProposal">关闭</button>
+            <div id="proposalContent"></div>
+        `;
+    document.body.appendChild(this.ProposalMenu);
+};
 /**
 * 图编辑器管理器，以及右键菜单
 */
@@ -240,15 +221,15 @@ class GraphManager {
         // this.initSystemMenus();
         MenuController.init();
         // 添加拖拽创建节点的处理
-        _a.container.addEventListener('dragover', (e) => {
+        _b.container.addEventListener('dragover', (e) => {
             e.preventDefault();
         });
-        _a.container.addEventListener('drop', (e) => {
+        _b.container.addEventListener('drop', (e) => {
             e.preventDefault();
             const nodeTypeData = JSON.parse(e.dataTransfer.getData('nodeType'));
             // 计算放置位置（考虑缩放和滚动）
-            const rect = _a.container.getBoundingClientRect();
-            const scale = _a.zoom;
+            const rect = _b.container.getBoundingClientRect();
+            const scale = _b.zoom;
             const x = (e.clientX - rect.left) / scale;
             const y = (e.clientY - rect.top) / scale;
             // 创建新节点
@@ -531,7 +512,7 @@ class GraphManager {
                 submenuItem.textContent = nodeData.type;
                 console.log(nodeData);
                 submenuItem.onclick = () => {
-                    new Node(this.lastContextMenuX, this.lastContextMenuY, nodeData);
+                    new GraphNode(this.lastContextMenuX, this.lastContextMenuY, nodeData);
                     // createNode(lastContextMenuX, lastContextMenuY, subitem.type);
                     parentMenu.remove();
                     submenu.remove();
@@ -543,7 +524,7 @@ class GraphManager {
         return submenu;
     }
 }
-_a = GraphManager;
+_b = GraphManager;
 GraphManager.canvas_x = 0;
 GraphManager.canvas_y = 0;
 // 缩放
@@ -572,7 +553,7 @@ GraphManager.menuItems = [
     {
         text: '添加组',
         action: () => {
-            new Group((_a.lastContextMenuX - _a.canvas_x) / _a.zoom, (_a.lastContextMenuY - _a.canvas_y) / _a.zoom);
+            new Group((_b.lastContextMenuX - _b.canvas_x) / _b.zoom, (_b.lastContextMenuY - _b.canvas_y) / _b.zoom);
         }
     },
     {
@@ -582,7 +563,7 @@ GraphManager.menuItems = [
     {
         text: '更改背景颜色',
         action: () => {
-            _a.ChangeBackgroundColor('#' + Math.floor(Math.random() * 16777215).toString(16));
+            _b.ChangeBackgroundColor('#' + Math.floor(Math.random() * 16777215).toString(16));
         }
     }
 ];

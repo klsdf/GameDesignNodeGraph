@@ -130,7 +130,7 @@ class GraphNode {
         /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
         this.documentElement = document.createElement('div');
         this.documentElement.className = 'node';
-        // this.documentElement.id = 'node' + Node.nodeCounter;
+        this.documentElement.id = 'node-' + Date.now();
         // this.documentElement.contentEditable = true;
         this.documentElement.style.left = (x - 50) + 'px';
         this.documentElement.style.top = (y - 25) + 'px';
@@ -170,7 +170,7 @@ class GraphNode {
             this.outputPortsPlus.push(newport);
         }
         // 初始化输入端口的每一个元素为数组
-        this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
+        this.inputPortsData = Array(this.inputPorts.length).fill(null).map(() => []);
         // 初始化输出端口数据为unull
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
         // 实例化输入端口
