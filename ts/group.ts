@@ -129,6 +129,11 @@ class Group {
         // 组大小调整事件处理
         const resizeHandle = this.element.querySelector('.group-resize-handle');
         let isResizing = false; // 标记组是否正在被调整大小
+        if(!resizeHandle) 
+        {
+            console.error("resizeHandle is null");
+            return;
+        }
 
         resizeHandle.addEventListener('mousedown', (e) => {
             isResizing = true;
