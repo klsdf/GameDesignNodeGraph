@@ -47,7 +47,7 @@ class NodeManager {
             parentTitle.textContent = parentType;
             container.appendChild(parentTitle);
             // 创建该类型下的所有节点
-            nodeTypes.forEach(nodeType => {
+            nodeTypes.forEach((nodeType) => {
                 const item = document.createElement('div');
                 item.className = 'node-list-item';
                 item.textContent = nodeType.type;
@@ -127,26 +127,21 @@ class GraphNode {
         this.outputPortsPlus = [];
         /** @type {Array<HTMLElement>} 输出端口列表 */
         this.outputPorts = [];
-        /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
         this.documentElement = document.createElement('div');
         this.documentElement.className = 'node';
-        // this.documentElement.id = 'node' + Node.nodeCounter;
-        // this.documentElement.contentEditable = true;
+        this.documentElement.id = 'node-' + Date.now();
         this.documentElement.style.left = (x - 50) + 'px';
         this.documentElement.style.top = (y - 25) + 'px';
         this.documentElement.style.width = nodeConfig.width;
         this.documentElement.style.height = nodeConfig.height;
+        this.documentElement.node = this;
         this.initEvents();
         GraphManager.container?.appendChild(this.documentElement);
         this.addResizeHandle();
-        // 添加数据相关的属性
-        // this.data = null;  // 节点的数据
         // 添加运行按钮
         this.addRunButton();
         // 添加组件
         this.updateComponent();
-        //  保存节点
-        this.documentElement.node = this;
         this.group = null;
         this.updatePorts();
     }
@@ -170,7 +165,7 @@ class GraphNode {
             this.outputPortsPlus.push(newport);
         }
         // 初始化输入端口的每一个元素为数组
-        this.inputPortsData = Array(this.inputPorts.length).fill().map(() => []);
+        this.inputPortsData = Array(this.inputPorts.length).fill(null).map(() => []);
         // 初始化输出端口数据为unull
         this.outputPortsData = Array(this.outputPorts.length).fill(null);
         // 实例化输入端口
@@ -725,14 +720,17 @@ class GraphNode {
         // 清空所有输出端口数据
         this.outputPortsData = this.outputPorts.map(() => null);
     }
-    // 添加新的辅助方法来获取输入和输出连接
+    /**
+     * 添加新的辅助方法来获取输入和输出连接
+     * @returns {Array<ConnectionInfo>} 输入连接列表
+     */
     getIncomingConnections() {
         // 只遍历源节点的connections
         const incomingConnections = [];
         document.querySelectorAll('.node').forEach(nodeElement => {
             const sourceNode = nodeElement.node;
             if (sourceNode) {
-                sourceNode.connections.forEach(conn => {
+                sourceNode.connections.forEach((conn) => {
                     if (conn.to.parentNode === this.documentElement) {
                         incomingConnections.push(conn);
                     }
