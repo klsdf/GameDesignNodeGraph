@@ -1,5 +1,6 @@
-"use strict";
 var _a;
+import GraphNode from './graphNode.js';
+import NodeManager from './NodeManager.js';
 /**
  * 菜单控制器类
  * 负责管理菜单的创建和事件监听
@@ -593,3 +594,4 @@ GraphManager.nodeMenuItems = [
     { text: '删除节点', action: (clickedNode) => { console.log("神秘节点", clickedNode.node); clickedNode.node.destoryNode(); } },
     { text: '删除连接', action: (clickedNode) => clickedNode.node.removeAllConnections() },
 ];
+export default GraphManager;

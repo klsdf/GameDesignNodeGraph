@@ -1,7 +1,7 @@
 /**
  * 基础组件类
  */
-class Component {
+export class Component {
     element:HTMLElement;
     constructor(elementType:string,title:string) {
         //这个类是抽象类，不能直接实例化
@@ -22,7 +22,7 @@ class Component {
     }
 }
 
-class TextAreaComponent extends Component {
+export class TextAreaComponent extends Component {
     constructor() {
         super('textarea','文本');
         this.element.style.width = '80%';
@@ -36,14 +36,14 @@ class TextAreaComponent extends Component {
     }
 }
 
-class TitleComponent extends Component {
+export class TitleComponent extends Component {
     constructor(textTitle:string) {
         super('h1','标题');
         this.element.innerHTML = textTitle;
     }
 }
 
-class VideoComponent extends Component {
+export class VideoComponent extends Component {
     constructor(src:string) {
         super('video','视频');
         this.element.controls = true; // 添加播放控制器
@@ -61,7 +61,7 @@ class VideoComponent extends Component {
     }
 }
 
-class AudioComponent extends Component {
+export class AudioComponent extends Component {
     constructor(src) {
         super('audio','音频' );
         this.element.controls = true; // 添加播放控制器

@@ -1,9 +1,9 @@
-"use strict";
+import GraphManager from './graph.js';
 /**
  * 组类
  * 用于管理和组织节点的分组功能，支持拖拽、调整大小等交互
  */
-class Group {
+export default class Group {
     /**
      * 创建新的组
      * @param {number} x - 组的初始X坐标
