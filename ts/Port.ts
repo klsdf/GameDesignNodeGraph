@@ -15,8 +15,8 @@ export default class Port {
     /** @type {string} 端口类型 */
     type:string;
 
-    /** @type {Array<any>} 端口数据 */
-    data:Array<any>;
+    /** @type {Array<any>|any} 端口数据 */
+    data:Array<any>|any;
 
     /** @type {HTMLElement} 端口DOM元素 */
     element:HTMLElement|null;
@@ -29,7 +29,7 @@ export default class Port {
      * @param {Array<any>} data - 端口数据
      * @param {HTMLElement} element - 端口DOM元素
      */
-    constructor(node:GraphNode, index:number, type:string, data:Array<any>, element:HTMLElement) {
+    constructor(node:GraphNode, index:number, type:string, data:Array<any>|any, element:HTMLElement) {
         /** @type {GraphNode} 端口所属节点 */
         this.node = node;
 

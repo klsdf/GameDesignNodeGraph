@@ -14,10 +14,6 @@ export default class GraphNode {
      * @param {NodeConfig} nodeConfig - 节点配置对象
      */
     constructor(x, y, nodeConfig) {
-        /** @type {Array<Array<any>>} 输入端口数据列表 */
-        this.inputPortsData = [];
-        /** @type {Array<any>} 输出端口数据列表 */
-        this.outputPortsData = [];
         /** @type {boolean} 是否正在移动 */
         this.ismoving = false;
         /** @type {number} 节点X坐标 */
@@ -59,33 +55,36 @@ export default class GraphNode {
      * 更新端口数据
      */
     updatePorts() {
-        // 处理输入端口
+        // 处理输入端口，数据为数组
         for (let i = 0; i < this.nodeConfig.inputPorts.length; i++) {
             let portType = this.nodeConfig.inputPorts[i].type;
-            // let element = this.createInputElement(portType);
-            let newport = new Port(this, i, portType, [], null);
+            let element = this.createInputElement(portType);
+            this.documentElement.appendChild(element);
+            let newport = new Port(this, i, portType, [], element);
             this.inputPortsPlus.push(newport);
         }
-        // 处理输出端口
+        // 处理输出端口，数据为null
         for (let i = 0; i < this.nodeConfig.outputPorts.length; i++) {
             let portType = this.nodeConfig.outputPorts[i].type;
-            let newport = new Port(this, i, portType, [], null);
+            let element = this.createOutputElement(portType);
+            this.documentElement.appendChild(element);
+            let newport = new Port(this, i, portType, null, element);
             this.outputPortsPlus.push(newport);
         }
         // 初始化输入端口的每一个元素为数组
-        this.inputPortsData = Array(this.inputPorts.length).fill(null).map(() => []);
+        // this.inputPortsData = Array(this.inputPorts.length).fill(null).map(() => []);
         // 初始化输出端口数据为unull
-        this.outputPortsData = Array(this.outputPorts.length).fill(null);
-        // 实例化输入端口
-        this.nodeConfig.inputPorts.forEach(portConfig => {
-            let inputPort = this.createInputElement(portConfig.type);
-            this.documentElement.appendChild(inputPort);
-        });
-        // 实例化输出端口
-        this.nodeConfig.outputPorts.forEach(portConfig => {
-            let outputPort = this.createOutputElement(portConfig.type);
-            this.documentElement.appendChild(outputPort);
-        });
+        // this.outputPortsData = Array(this.outputPorts.length).fill(null);
+        // // 实例化输入端口
+        // this.nodeConfig.inputPorts.forEach(portConfig => {
+        //     let inputPort = this.createInputElement(portConfig.type);
+        //     this.documentElement.appendChild(inputPort);
+        // });
+        // // 实例化输出端口
+        // this.nodeConfig.outputPorts.forEach(portConfig => {
+        //     let outputPort = this.createOutputElement(portConfig.type);
+        //     this.documentElement.appendChild(outputPort);
+        // });
         this.setupPortEvents();
     }
     /**
@@ -97,7 +96,7 @@ export default class GraphNode {
         const inputPort = document.createElement('div');
         inputPort.className = 'port input-port';
         this.inputPorts.push(inputPort);
-        this.inputPortsData.push([]); // 初始化为空数组
+        // this.inputPortsData.push([]); // 初始化为空数组
         // 显示类型标签
         if (type) {
             const typeLabel = document.createElement('span');
@@ -118,7 +117,7 @@ export default class GraphNode {
         const outputPort = document.createElement('div');
         outputPort.className = 'port output-port';
         this.outputPorts.push(outputPort);
-        this.outputPortsData.push(null);
+        // this.outputPortsData.push(null);
         // this.documentElement.appendChild(outputPort);
         // 显示类型标签
         if (type) {
@@ -175,7 +174,8 @@ export default class GraphNode {
                 const toPortIndex = this.inputPorts.indexOf(conn.to);
                 const sourceNode = conn.from.parentNode.node;
                 const fromPortIndex = sourceNode.outputPorts.indexOf(conn.from);
-                const outputData = sourceNode.outputPortsData[fromPortIndex];
+                // const outputData = sourceNode.outputPortsData[fromPortIndex];
+                const outputData = sourceNode.outputPortsPlus[fromPortIndex].data;
                 if (!portDataMap.has(toPortIndex)) {
                     portDataMap.set(toPortIndex, new Set());
                 }
@@ -185,7 +185,8 @@ export default class GraphNode {
             });
             // 将 Set 转换回数组并保存到 inputPortsData
             for (const [portIndex, dataSet] of portDataMap) {
-                this.inputPortsData[portIndex] = Array.from(dataSet);
+                // this.inputPortsData[portIndex] = Array.from(dataSet);
+                this.inputPortsPlus[portIndex].data = Array.from(dataSet);
             }
             // 处理当前节点的数据
             await this.processData();
@@ -225,8 +226,14 @@ export default class GraphNode {
     // 重置节点状态
     reset() {
         // 将每个输入端口的数据重置为空数组
-        this.inputPortsData = this.inputPorts.map(() => []);
-        this.outputPortsData = new Array(this.outputPorts.length).fill(null);
+        // this.inputPortsData = this.inputPorts.map(() => []);
+        this.inputPortsPlus.forEach(port => {
+            port.data = [];
+        });
+        // this.outputPortsData = new Array(this.outputPorts.length).fill(null);
+        this.outputPortsPlus.forEach(port => {
+            port.data = null;
+        });
         this.documentElement.classList.remove('processing', 'processed', 'error');
     }
     initEvents() {
@@ -390,7 +397,8 @@ export default class GraphNode {
             const toPortIndex = toNode.inputPorts.indexOf(connection.to);
             // 清理输入端口的数据（重置为空数组）
             if (toPortIndex !== -1) {
-                toNode.inputPortsData[toPortIndex] = [];
+                // toNode.inputPortsData[toPortIndex] = [];
+                toNode.inputPortsPlus[toPortIndex].data = [];
             }
         }
     }
@@ -607,7 +615,8 @@ export default class GraphNode {
             console.warn(`Invalid input port index: ${index}`);
             return [];
         }
-        return this.inputPortsData[index];
+        // return this.inputPortsData[index];
+        return this.inputPortsPlus[index].data;
     }
     // 修改：设置输出端口数据的方法
     setOutputPortData(index, data) {
@@ -616,7 +625,8 @@ export default class GraphNode {
             return;
         }
         // 保存数据到输出端口
-        this.outputPortsData[index] = data;
+        // this.outputPortsData[index] = data;
+        this.outputPortsPlus[index].data = data;
         // 不再在这里直接传递数据到下游节点
         // 数据传递将在 run 方法中进行
         console.log(`Output port ${index} set to:`, data);
@@ -624,9 +634,15 @@ export default class GraphNode {
     // 添加清除数据的方法
     clearData() {
         // 清空所有输入端口数据
-        this.inputPortsData = this.inputPorts.map(() => []);
+        // this.inputPortsData = this.inputPorts.map(() => []);
+        this.inputPortsPlus.forEach(port => {
+            port.data = [];
+        });
         // 清空所有输出端口数据
-        this.outputPortsData = this.outputPorts.map(() => null);
+        // this.outputPortsData = this.outputPorts.map(() => null);
+        this.outputPortsPlus.forEach(port => {
+            port.data = null;
+        });
     }
     /**
      * 添加新的辅助方法来获取输入和输出连接
