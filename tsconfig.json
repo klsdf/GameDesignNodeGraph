@@ -6,10 +6,11 @@
       
       // 使用的模块系统
       // 可选值: "none", "commonjs", "amd", "umd", "system", "es6"/"es2015", "es2020", "esnext"
-      "module": "commonjs",   
+      "module": "es2020",   
       
       // 编译输出目录
       "outDir": "./js",     
+      // "outFile": "./js/gameDesignGraph.js",
       
       // TypeScript 源文件目录
       "rootDir": "./ts",      

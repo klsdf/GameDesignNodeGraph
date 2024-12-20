@@ -1,139 +1,16 @@
-/**
- * 节点管理器类
- * 负责管理和注册所有节点类型，以及更新节点列表显示
- */
-class NodeManager {
-    static registeredNodeConfigs :Array<NodeConfig> = [];
-
-    /**
-     * 注册新的节点类型
-     * @param {NodeConfig} nodeConfig - 要注册的节点配置实例
-     * @throws {Error} 如果节点类型已存在于同一父类型中
-     */
-    static registerNode(nodeConfig: NodeConfig): void {
-        if (!NodeManager.registeredNodeConfigs[nodeConfig.parentType]) {
-            NodeManager.registeredNodeConfigs[nodeConfig.parentType] = [];
-        }
-        // 检查是否已存在相同类型的节点
-        const existingNodeConfig = NodeManager.registeredNodeConfigs[nodeConfig.parentType].find(
-            config => config.type === nodeConfig.type
-        );
-        console.log("existingNodeConfig", existingNodeConfig);
-        if (existingNodeConfig) {
-            throw new Error(`节点类型 '${nodeConfig.type}' 已存在于 '${nodeConfig.parentType}' 分类中`);
-        }
-        NodeManager.registeredNodeConfigs[nodeConfig.parentType].push({
-            type: nodeConfig.type,
-            processFunction: nodeConfig.processFunction
-        });
-        NodeManager.updateNodeList();
-    }
 
 
-
-    static getNodeConfig(parentType:string, type:string):NodeConfig {
-        return NodeManager.registeredNodeConfigs[parentType].find(config => config.type === type);
-    }
-
-
-    /**
-     * 更新首页的节点列表显示
-     * 创建可拖拽的节点类型列表
-     */
-    static updateNodeList() {
-        const container = document.getElementById('node-list-container');
-        if (container===null) {
-            console.error("NodeManager.updateNodeList: container is null");
-            return;
-        }
-        container.innerHTML = ''; // 清空现有列表
-
-        // 遍历所有注册的节点类型
-        Object.entries(NodeManager.registeredNodeConfigs).forEach(([parentType, nodeTypes]) => {
-            // 创建父类型标题
-            const parentTitle = document.createElement('div');
-            parentTitle.className = 'node-list-category';
-            parentTitle.textContent = parentType;
-            container.appendChild(parentTitle);
-
-            // 创建该类型下的所有节点
-            nodeTypes.forEach(nodeType => {
-                const item = document.createElement('div');
-                item.className = 'node-list-item';
-                item.textContent = nodeType.type;
-                item.draggable = true;
-
-                // 添加拖拽事件
-                item.addEventListener('dragstart', (e) => {
-                    console.log("dragstart", e);
-                    e.dataTransfer.setData('nodeType', JSON.stringify({
-                        parentType: parentType,
-                        type: nodeType.type,
-                        processFunction: nodeType.processFunction
-                    }));
-                });
-
-                container.appendChild(item);
-            });
-        });
-    }
-}
-
-
-/**
- * 端口类
- * 表示节点上的输入输出端口，包含端口所属节点、索引和类型信息
- */
-class Port {
-
-    /** @type {GraphNode} 端口所属节点 */
-    node:GraphNode;
-
-    /** @type {number} 端口索引 */
-    index:number;
-
-    /** @type {string} 端口类型 */
-    type:string;
-
-    /** @type {Array<any>} 端口数据 */
-    data:Array<any>;
-
-    /** @type {HTMLElement} 端口DOM元素 */
-    element:HTMLElement|null;
-
-    /**
-     * 创建新端口
-     * @param {GraphNode} node - 端口所属的节点
-     * @param {number} index - 端口在节点中的索引
-     * @param {string} type - 端口类型  
-     * @param {Array<any>} data - 端口数据
-     * @param {HTMLElement} element - 端口DOM元素
-     */
-    constructor(node:GraphNode, index:number, type:string, data:Array<any>, element:HTMLElement) {
-        /** @type {GraphNode} 端口所属节点 */
-        this.node = node;
-
-        /** @type {number} 端口索引 */
-        this.index = index;
-
-        /** @type {string} 端口类型 */
-        this.type = type;
-
-        /** @type {Array} 端口数据 */
-        this.data = data;
-
-        /** @type {HTMLElement} 端口DOM元素 */
-        this.element = element;
-    }
-}
-
-
+import Port  from './Port.js';
+import { ConnectionInfo,ConnectionUtils } from './ConnectionUtils.js';
+import Group from './group.js';
+import GraphManager from './graph.js';
+import NodeConfig from './nodeConfig.js';
 /**
  * 节点类
  * 表示流程图中的一个节点，包含输入输出端口、数据处理和连接管理功能
  * 通过NodeConfig类来配置节点
  */
-class GraphNode {
+export default class GraphNode {
     // #region 节点初始化
 
     /** @type {boolean} 是否正在移动 */
@@ -149,7 +26,7 @@ class GraphNode {
     nodeConfig:NodeConfig;
 
     /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
-    documentElement: HTMLElement & { node?: GraphNode };
+    documentElement: HTMLElement & { node: GraphNode };
 
 
     /** @type {Array<{from: HTMLElement, to: HTMLElement, path: SVGElement}>} 节点连接列表,每个连接包含起始端口、目标端口和SVG路径元素
@@ -220,17 +97,15 @@ class GraphNode {
         this.outputPorts = [];
 
         
-
-        /** @type {HTMLElement & { node?: GraphNode }} 节点DOM元素 */
-        this.documentElement = document.createElement('div') as HTMLElement & { node?: GraphNode };
+        this.documentElement = document.createElement('div') as unknown as HTMLElement & { node: GraphNode };
 
         this.documentElement.className = 'node';
         this.documentElement.id = 'node-' + Date.now();
-        // this.documentElement.contentEditable = true;
         this.documentElement.style.left = (x - 50) + 'px';
         this.documentElement.style.top = (y - 25) + 'px';
         this.documentElement.style.width = nodeConfig.width;
         this.documentElement.style.height = nodeConfig.height;
+        this.documentElement.node = this;
 
 
         this.initEvents();
@@ -238,15 +113,12 @@ class GraphNode {
         GraphManager.container?.appendChild(this.documentElement);
         this.addResizeHandle();
 
-        // 添加数据相关的属性
-        // this.data = null;  // 节点的数据
 
         // 添加运行按钮
         this.addRunButton();
         // 添加组件
         this.updateComponent();
-        //  保存节点
-        this.documentElement.node = this;
+   
 
         this.group = null;
 
@@ -971,14 +843,18 @@ class GraphNode {
         this.outputPortsData = this.outputPorts.map(() => null);
     }
 
-    // 添加新的辅助方法来获取输入和输出连接
+    /**
+     * 添加新的辅助方法来获取输入和输出连接
+     * @returns {Array<ConnectionInfo>} 输入连接列表
+     */
+
     getIncomingConnections() {
         // 只遍历源节点的connections
         const incomingConnections: ConnectionInfo[] = [];
         document.querySelectorAll('.node').forEach(nodeElement => {
-            const sourceNode = nodeElement.node;
+            const sourceNode:GraphNode = nodeElement.node;
             if (sourceNode) {
-                sourceNode.connections.forEach(conn => {
+                sourceNode.connections.forEach((conn:ConnectionInfo) => {
                     if (conn.to.parentNode === this.documentElement) {
                         incomingConnections.push(conn);
                     }
@@ -994,91 +870,4 @@ class GraphNode {
     }
 }
 
-
-/**
- * 节点配置类
- * 负责管理节点的类型、大小、处理函数等信息
- */
-class NodeConfig {
-
-    /** @type {string} 父类型 */
-    parentType:string;
-
-    /** @type {string} 类型 */
-    type:string;
-
-    /** @type {Function} 处理函数 */
-    processFunction:Function;
-
-    /** @type {string} 宽度 */
-    width:string;
-
-    /** @type {string} 高度 */
-    height:string;
-
-    /** @type {Array<Component>} 组件列表 */
-    components:Array<Component>;
-
-    /** @type {Array<{type: string}>} 输入端口列表 */
-    inputPorts:Array<{type: string}>;
-
-    /** @type {Array<{type: string}>} 输出端口列表 */
-    outputPorts:Array<{type: string}>;
-
-    constructor(parentType = "默认", type = "默认", processFunction = () => { console.log("默认处理函数") }, width = "300px", height = '400px') {
-        this.parentType = parentType;
-        this.type = type;
-        this.processFunction = processFunction || this.defaultProcess;
-        this.width = width;
-        this.height = height
-
-
-        //默认的变量
-        this.components = []
-
-        // 添加输入和输出端口信息
-        this.inputPorts = [];
-        this.outputPorts = [];
-    }
-
-
-    /**
-     * 添加组件到节点配置中
-     * @param {Component} component - 要添加的组件
-     */
-    addComponent(component:Component) {
-        this.components.push(component);
-    }
-
-
-    setType(parentType:string, type:string) {
-        this.parentType = parentType;
-        this.type = type;
-    }
-    setSize(width:string, height:string) {
-        this.width = width;
-        this.height = height;
-    }
-    setProcessFunction(processFunction:Function) {
-        this.processFunction = processFunction;
-    }
-
-    // 修改默认处理函数以持新的API
-    defaultProcess(node:GraphNode) {
-        // 从第一个输入端口获取数据
-        const inputData = node.getInputPortData(0);
-        // 设置第一个输出端口的数据
-        node.setOutputPortData(0, `${inputData} -> 经过默认处理`);
-    }
-
-    // 添加输入端口信息
-    addInputPort(type:string = '无') {
-        this.inputPorts.push({ type });
-    }
-
-    // 添加输出端口信息
-    addOutputPort(type:string = '无') {
-        this.outputPorts.push({ type });
-    }
-}
 

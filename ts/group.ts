@@ -1,8 +1,10 @@
+import GraphNode from './graphNode.js';
+import GraphManager from './graph.js';
 /**
  * 组类
  * 用于管理和组织节点的分组功能，支持拖拽、调整大小等交互
  */
-class Group {
+export default class Group {
 
     /** @type {string} 组的唯一标识符 */
     id: string;

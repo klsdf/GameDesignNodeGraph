@@ -1,8 +1,7 @@
-"use strict";
 /**
  * 基础组件类
  */
-class Component {
+export class Component {
     constructor(elementType, title) {
         //这个类是抽象类，不能直接实例化
         if (this.constructor === Component) {
@@ -20,7 +19,7 @@ class Component {
         this.element.prepend(titleElement);
     }
 }
-class TextAreaComponent extends Component {
+export class TextAreaComponent extends Component {
     constructor() {
         super('textarea', '文本');
         this.element.style.width = '80%';
@@ -32,13 +31,13 @@ class TextAreaComponent extends Component {
         // this.element.style.backgroundColor = 'red';
     }
 }
-class TitleComponent extends Component {
+export class TitleComponent extends Component {
     constructor(textTitle) {
         super('h1', '标题');
         this.element.innerHTML = textTitle;
     }
 }
-class VideoComponent extends Component {
+export class VideoComponent extends Component {
     constructor(src) {
         super('video', '视频');
         this.element.controls = true; // 添加播放控制器
@@ -53,7 +52,7 @@ class VideoComponent extends Component {
         this.element.src = src;
     }
 }
-class AudioComponent extends Component {
+export class AudioComponent extends Component {
     constructor(src) {
         super('audio', '音频');
         this.element.controls = true; // 添加播放控制器

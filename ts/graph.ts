@@ -1,3 +1,6 @@
+import GraphNode  from './graphNode.js';
+import NodeManager from './NodeManager.js';
+
 /**
  * 菜单控制器类
  * 负责管理菜单的创建和事件监听
@@ -266,7 +269,7 @@ class MenuController
 /**
 * 图编辑器管理器，以及右键菜单
 */
-class GraphManager {
+export default class GraphManager {
 
     static container:HTMLElement ;
     static canvas_x = 0;

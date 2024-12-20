@@ -1,8 +1,11 @@
+import GraphManager from './graph.js';
+
 /**
  * 连接信息类
  * 用于存储连接信息，包括起始端口、目标端口和连接线
+ * 
  */
-class ConnectionInfo{
+export class ConnectionInfo{
     /** @type {HTMLElement} 起始节点 */
     from:HTMLElement;
 
@@ -40,7 +43,7 @@ class ConnectionInfo{
  * 连接工具类
  * 提供创建和管理节点间连接线的工具方法，只负责画线
  */
-class ConnectionUtils {
+export class ConnectionUtils {
     /**
      * 在指定容器中绘制连接线
      * @returns {SVGElement} 创建的连接线元素
