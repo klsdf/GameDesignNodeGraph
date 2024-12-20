@@ -823,9 +823,10 @@ export default class GraphNode {
 
 
 
+
     // 修改：获取输入端口数据的方法
     getInputPortData(index:number) {
-        if (index < 0 || index >= this.inputPorts.length) {
+        if (index < 0 || index >= this.inputPortsPlus.length) {
             console.warn(`Invalid input port index: ${index}`);
             return [];
         }

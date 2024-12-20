@@ -7,7 +7,7 @@ GraphManager.init();
 let config1 = new NodeConfig();
 config1.setType("基础节点", "游戏设计动机");
 config1.setSize("500px", "500px");
-config1.setProcessFunction((node) => {
+config1.setProcessFunction((node:GraphNode) => {
     node.setOutputPortData(0, "0号234234234234节点");
     node.setOutputPortData(1, '1号节点');
     node.setOutputPortData(2, '2号节点');
@@ -24,7 +24,7 @@ var node1 = new GraphNode(100, 100, config1);
 let config2 = new NodeConfig();
 config2.setType("基础节点", "游戏设计体验");
 config2.setSize("500px", "500px");
-config2.setProcessFunction((node) => {
+config2.setProcessFunction((node:GraphNode) => {
     const inputDataArray = node.getInputPortData(0);
     const result = inputDataArray.join('，');
     document.getElementById("proposalContent").innerHTML = result;

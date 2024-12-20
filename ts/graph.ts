@@ -1,5 +1,6 @@
 import GraphNode  from './graphNode.js';
 import NodeManager from './NodeManager.js';
+import Group from './group.js';
 
 /**
  * 菜单控制器类
@@ -25,7 +26,7 @@ class MenuController
      * @private
      */
     static #initSystemMenus() {
-        console.log('Initializing system menus...');
+        // console.log('Initializing system menus...');
         // 创建导航栏
         const navBar = document.createElement('div');
         navBar.id = 'nav-bar';
@@ -37,7 +38,7 @@ class MenuController
         `;
         document.body.appendChild(navBar);
 
-        console.log('Creating menus...');
+        // console.log('Creating menus...');
         // 创建菜单
         this.#createNodeListMenu();
         this.#createSettingsMenu();
@@ -188,7 +189,7 @@ class MenuController
      * @private
      */
     static toggleMenu(menuId:string) {
-        console.log('Toggling menu:', menuId);
+        // console.log('Toggling menu:', menuId);
         const menu = document.getElementById(menuId);
         const button = document.querySelector(`button[id$="${menuId.replace('-menu', '')}-button"]`);
         

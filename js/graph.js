@@ -6,6 +6,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _a, _MenuController_initSystemMenus, _MenuController_createNodeListMenu, _MenuController_createSettingsMenu, _MenuController_createFileMenu, _MenuController_createProposalMenu, _b;
 import GraphNode from './graphNode.js';
 import NodeManager from './NodeManager.js';
+import Group from './group.js';
 /**
  * 菜单控制器类
  * 负责管理菜单的创建和事件监听
@@ -82,7 +83,7 @@ class MenuController {
      * @private
      */
     static toggleMenu(menuId) {
-        console.log('Toggling menu:', menuId);
+        // console.log('Toggling menu:', menuId);
         const menu = document.getElementById(menuId);
         const button = document.querySelector(`button[id$="${menuId.replace('-menu', '')}-button"]`);
         // console.log('Menu element:', menu);
@@ -147,7 +148,7 @@ class MenuController {
     }
 }
 _a = MenuController, _MenuController_initSystemMenus = function _MenuController_initSystemMenus() {
-    console.log('Initializing system menus...');
+    // console.log('Initializing system menus...');
     // 创建导航栏
     const navBar = document.createElement('div');
     navBar.id = 'nav-bar';
@@ -158,7 +159,7 @@ _a = MenuController, _MenuController_initSystemMenus = function _MenuController_
             <button id="proposal-button">📄 策划案</button>
         `;
     document.body.appendChild(navBar);
-    console.log('Creating menus...');
+    // console.log('Creating menus...');
     // 创建菜单
     __classPrivateFieldGet(this, _a, "m", _MenuController_createNodeListMenu).call(this);
     __classPrivateFieldGet(this, _a, "m", _MenuController_createSettingsMenu).call(this);
